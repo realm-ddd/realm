@@ -1,0 +1,14 @@
+{
+	"folders":
+	[
+		{
+			"path": ".",
+			"folder_exclude_patterns": [
+				"tmp"
+			],
+			"file_exclude_patterns": [
+				"*.sublime-workspace"
+			]
+		}
+	]
+}
