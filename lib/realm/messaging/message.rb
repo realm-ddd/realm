@@ -42,7 +42,7 @@ module Realm
 
       def assert_valid_message_description(message_description)
         if !message_description.has_key?(:message_type)
-          raise ArgumentError.new("Message descriptions must include an :message_type key")
+          raise ArgumentError.new("Message descriptions must include a :message_type key")
         end
 
         return unless message_type == message_description[:message_type]
