@@ -1,7 +1,6 @@
 require 'spec_helper'
 
 require 'realm/messaging'
-require 'realm/messaging/bus'
 
 module Realm
   module Messaging

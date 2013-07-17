@@ -2,7 +2,6 @@ require 'spec_helper'
 
 require 'realm/event_store'
 require 'realm/messaging'
-require 'realm/messaging/bus'
 
 module Realm
   module EventStore
