@@ -1,5 +1,3 @@
-require "realm/version"
-
-module Realm
-  # Your code goes here...
-end
+require_relative 'realm/domain'
+require_relative 'realm/event_store'
+require_relative 'realm/messaging'
