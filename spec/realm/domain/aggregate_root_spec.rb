@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 require 'realm/domain'
+require 'realm/messaging'
 
 module Realm
   module Domain
@@ -8,7 +9,7 @@ module Realm
       class TestAggregateRoot
         extend Realm::Domain::AggregateRoot
 
-        Events = EventFactory.new
+        Events = Messaging::MessageFactory.new
         Events.define(:test_aggregate_created, :foo)
         Events.define(:foo_updated, :foo)
         Events.define(:simple_event)
@@ -82,7 +83,7 @@ module Realm
 
         it "has an uncommitted creation event" do
           expect(aggregate_root).to have_uncommitted_events(
-            { event_type: :test_aggregate_created, uuid: :aggregate_uuid, foo: "bar" }
+            { message_type: :test_aggregate_created, uuid: :aggregate_uuid, foo: "bar" }
           )
         end
       end
@@ -117,7 +118,7 @@ module Realm
           aggregate_root.update_foo_without_providing_uuid
 
           expect(aggregate_root).to have_uncommitted_events(
-            { event_type: :foo_updated, uuid: :aggregate_uuid, foo: "unimportant" }
+            { message_type: :foo_updated, uuid: :aggregate_uuid, foo: "unimportant" }
           )
         end
 
@@ -125,7 +126,7 @@ module Realm
           aggregate_root.fire_event_with_no_attributes
 
           expect(aggregate_root).to have_uncommitted_events(
-            { event_type: :simple_event, uuid: :aggregate_uuid }
+            { message_type: :simple_event, uuid: :aggregate_uuid }
           )
         end
       end

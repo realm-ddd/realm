@@ -4,7 +4,7 @@ require 'realm/domain'
 require 'realm/spec'
 
 describe "expect(aggregate_root).to have_uncommitted_events(...)" do
-  let(:event_factory) { Realm::Domain::EventFactory.new }
+  let(:event_factory) { Realm::Messaging::MessageFactory.new }
 
   subject(:aggregate_root) {
     double(
@@ -73,7 +73,7 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
       context "specified uncommitted events that does not match" do
         let(:matcher) {
           have_uncommitted_events(
-            { event_type: :this_happened, uuid: :aggregate_uuid, property_1: "wrong value", property_2: "two"   }
+            { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "wrong value", property_2: "two"   }
           )
         }
 
@@ -94,7 +94,7 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
       context "specified uncommitted event that does match" do
         let(:matcher) {
           have_uncommitted_events(
-            { event_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  }
+            { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  }
           )
         }
 
@@ -109,9 +109,9 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
         context "that match" do
           let(:matcher) {
             have_uncommitted_events(
-              { event_type: :this_happened, uuid: :aggregate_uuid, property_1: "one", property_2: "two"   },
-              { event_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  },
-              { event_type: :that_happened, uuid: :aggregate_uuid, property_a: "x",   property_b: "y"     }
+              { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "one", property_2: "two"   },
+              { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  },
+              { message_type: :that_happened, uuid: :aggregate_uuid, property_a: "x",   property_b: "y"     }
             )
           }
 
@@ -125,9 +125,9 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
         context "that don't match" do
           let(:matcher) {
             have_uncommitted_events(
-              { event_type: :this_happened, uuid: :aggregate_uuid, property_1: "one", property_2: "two"   },
-              { event_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  },
-              { event_type: :that_happened, uuid: :aggregate_uuid, property_a: "x",   property_b: "z"     }
+              { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "one", property_2: "two"   },
+              { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  },
+              { message_type: :that_happened, uuid: :aggregate_uuid, property_a: "x",   property_b: "z"     }
             )
           }
 

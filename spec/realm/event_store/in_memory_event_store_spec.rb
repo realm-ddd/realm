@@ -1,16 +1,17 @@
 require 'spec_helper'
 
-require 'realm/bus'
 require 'realm/event_store'
+require 'realm/messaging'
+require 'realm/messaging/bus'
 
 module Realm
   module EventStore
     describe InMemoryEventStore do
-      let(:event_bus) { double(EventBus, publish: nil) }
+      let(:event_bus) { double(Messaging::Bus::MessageBus, publish: nil) }
       subject(:event_store) { InMemoryEventStore.new(event_bus) }
 
       it "is an EventStore" do
-        expect(event_store).to be_a(Realm::EventStore::EventStore)
+        expect(event_store).to be_a(::Realm::EventStore::EventStore)
       end
 
       describe "#save_events" do
