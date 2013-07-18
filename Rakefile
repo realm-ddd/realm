@@ -15,3 +15,13 @@ else
     exit 1
   end
 end
+
+namespace :git do
+  namespace :push do
+    desc "Push to origin and patchspace git remotes"
+    task :master do
+      system "git push origin master"
+      system "git push patchspace master"
+    end
+  end
+end
