@@ -9,6 +9,20 @@ module Realm
       let(:message_type_factory) { double("MessageTypeFactory", new: message_type) } # Unnamed type
       subject(:message_factory) { MessageFactory.new(message_type_factory) }
 
+      describe ".new" do
+        example "with a block" do
+          block_factory = MessageFactory.new do |messages|
+            messages.define(:my_message_type, :only_property)
+          end
+
+          # We currently have to force a UUID because the messaging system was initially written
+          # to only handle events for domain aggregates (which alwoys have a UUID)
+          expect(
+            block_factory.build(:my_message_type, only_property: "foo", uuid: nil)
+          ).to match_message_description(message_type: :my_message_type, only_property: "foo", uuid: nil)
+        end
+      end
+
       describe "#define" do
         it "builds the MessageType" do
           message_type_factory.should_receive(:new).with(:message_type_name, [:property_1, :property_2])

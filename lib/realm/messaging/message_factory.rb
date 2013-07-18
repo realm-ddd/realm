@@ -3,9 +3,10 @@ module Realm
     class MessageFactory
       class UnknownMessageTypeError < ArgumentError; end
 
-      def initialize(message_type_factory = MessageType)
+      def initialize(message_type_factory = MessageType, &builder_block)
         @message_type_factory = message_type_factory
         @message_types = Hash.new
+        builder_block[self] if block_given?
       end
 
       def define(message_type_name, *properties)
