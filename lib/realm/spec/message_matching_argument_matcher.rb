@@ -14,7 +14,8 @@ module Realm
       MessageMatchingArgumentMatcher.new(message_description)
     end
 
-    alias_method :event_matching, :message_matching
+    alias_method :event_matching,   :message_matching
+    alias_method :command_matching, :message_matching
   end
 end
 

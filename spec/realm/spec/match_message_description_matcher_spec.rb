@@ -24,4 +24,10 @@ describe "message matching" do
       expect(message).to match_event_description(message_type: :test_message_type, uuid: :test_uuid, foo: "bar")
     end
   end
+
+  describe "#match_command_description" do
+    it "is an alias" do
+      expect(message).to match_command_description(message_type: :test_message_type, uuid: :test_uuid, foo: "bar")
+    end
+  end
 end

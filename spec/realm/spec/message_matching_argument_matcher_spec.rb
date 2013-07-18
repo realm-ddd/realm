@@ -23,6 +23,9 @@ module Realm
         specify "#event_matching" do
           expect(event_matching(message_type: :test_message_type, uuid: :test_uuid, foo: "bar")).to be == message
         end
+        specify "#command_matching" do
+          expect(command_matching(message_type: :test_message_type, uuid: :test_uuid, foo: "bar")).to be == message
+        end
       end
     end
   end
