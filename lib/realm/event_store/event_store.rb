@@ -10,9 +10,5 @@ module Realm
         "Unknown AggregateRoot: #{@uuid.inspect}"
       end
     end
-
-    module EventStore
-
-    end
   end
 end
