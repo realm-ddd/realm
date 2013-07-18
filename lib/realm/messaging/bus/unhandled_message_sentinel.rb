@@ -1,7 +1,7 @@
 module Realm
   module Messaging
     module Bus
-      class UnhandledMessageErrorRaiser
+      class UnhandledMessageSentinel
         class UnhandledMessageError < RuntimeError; end
 
         def handle_unhandled_message(message)
