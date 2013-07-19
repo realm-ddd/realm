@@ -8,7 +8,9 @@ module Realm
       describe SimpleMessageBus do
         # It might be better to do this with MessageTypes directly,
         # eg as in the specs for the RSpec matchers
-        let(:message_factory) { Realm::Messaging::MessageFactory.new }
+        let(:message_factory) {
+          Realm::Messaging::MessageFactory.new
+        }
 
         before(:each) do
           message_factory.define(:message_type_1, :message_data)
@@ -18,65 +20,120 @@ module Realm
         end
 
         let(:message_handler_a) {
-          double("Event Handler A", handle_message_type_1: nil)
+          double("Message Handler A", handle_message_type_1: nil)
         }
         let(:message_handler_b) {
-          double("Event Handler B", handle_message_type_1: nil, handle_message_type_2: nil)
+          double("Message Handler B", handle_message_type_1: nil, handle_message_type_2: nil)
         }
         let(:message_handler_c) {
-          double("Event Handler C", handle_message_type_2: nil)
+          double("Message Handler C", handle_message_type_2: nil)
         }
-        subject(:message_bus) { SimpleMessageBus.new }
+        let(:unhandled_send_handler) {
+          double("Unhanded send message handler", handle_unhandled_message: nil)
+        }
+
+        subject(:message_bus) {
+          SimpleMessageBus.new(unhandled_send_handler: unhandled_send_handler)
+        }
 
         it "is an MessageBus" do
           expect(message_bus).to be_a(MessageBus)
         end
 
-        it "sends messages to registered handlers" do
-          message_bus.register(:message_type_1, message_handler_a, message_handler_b)
-          message_bus.register(:message_type_2, message_handler_b, message_handler_c)
+        describe "#publish" do
+          it "sends messages to registered handlers" do
+            message_bus.register(:message_type_1, message_handler_a, message_handler_b)
+            message_bus.register(:message_type_2, message_handler_b, message_handler_c)
 
-          message_handler_a.should_receive(:handle_message_type_1).with(
-            message_matching(message_type: :message_type_1, message_data: "foo")
-          )
-          message_handler_b.should_receive(:handle_message_type_1).with(
-            message_matching(message_type: :message_type_1, message_data: "foo")
-          )
-          message_handler_b.should_receive(:handle_message_type_2).with(
-            message_matching(message_type: :message_type_2, message_data: "bar")
-          )
-          message_handler_c.should_receive(:handle_message_type_2).with(
-            message_matching(message_type: :message_type_2, message_data: "bar")
-          )
+            message_handler_a.should_receive(:handle_message_type_1).with(
+              message_matching(message_type: :message_type_1, message_data: "foo")
+            )
+            message_handler_b.should_receive(:handle_message_type_1).with(
+              message_matching(message_type: :message_type_1, message_data: "foo")
+            )
+            message_handler_b.should_receive(:handle_message_type_2).with(
+              message_matching(message_type: :message_type_2, message_data: "bar")
+            )
+            message_handler_c.should_receive(:handle_message_type_2).with(
+              message_matching(message_type: :message_type_2, message_data: "bar")
+            )
 
-          message_bus.publish(message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "foo"))
-          message_bus.publish(message_factory.build(:message_type_2, uuid: :unused_uuid, message_data: "bar"))
+            message_bus.publish(message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "foo"))
+            message_bus.publish(message_factory.build(:message_type_2, uuid: :unused_uuid, message_data: "bar"))
+          end
+
+          it "sends all messages to handlers for :all_messages" do
+            message_bus.register(:all_messages, message_handler_a)
+
+            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type: :foo))
+            message_handler_a.should_receive(:handle_bar).with(message_matching(message_type: :bar))
+            message_handler_b.should_not_receive(:handle_foo)
+            message_handler_b.should_not_receive(:handle_bar)
+
+            message_bus.publish(message_factory.build(:foo, uuid: :unused_uuid))
+            message_bus.publish(message_factory.build(:bar, uuid: :unused_uuid))
+          end
+
+          it "sends unhandled messages to handlers for :unhandled_messages" do
+            message_bus.register(:foo, message_handler_a)
+            message_bus.register(:unhandled_message, message_handler_b)
+
+            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type: :foo))
+            message_handler_a.should_not_receive(:handle_bar)
+
+            message_handler_b.should_not_receive(:handle_unhandled_message).with(message_matching(message_type: :foo))
+            message_handler_b.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
+
+            message_bus.publish(message_factory.build(:foo, uuid: :unused_uuid))
+            message_bus.publish(message_factory.build(:bar, uuid: :unused_uuid))
+          end
         end
 
-        it "sends all messages to handlers for :all_messages" do
-          message_bus.register(:all_messages, message_handler_a)
+        describe "#send" do
+          it "sends messages to the one registered handler" do
+            message_bus.register(:message_type_1, message_handler_a)
 
-          message_handler_a.should_receive(:handle_foo).with(message_matching(message_type: :foo))
-          message_handler_a.should_receive(:handle_bar).with(message_matching(message_type: :bar))
-          message_handler_b.should_not_receive(:handle_foo)
-          message_handler_b.should_not_receive(:handle_bar)
+            message_handler_a.should_receive(:handle_message_type_1).with(
+              message_matching(message_type: :message_type_1, message_data: "foo")
+            )
 
-          message_bus.publish(message_factory.build(:foo, uuid: :unused_uuid))
-          message_bus.publish(message_factory.build(:bar, uuid: :unused_uuid))
-        end
+            message_bus.send(message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "foo"))
+          end
 
-        it "sends unhandled messages to handlers for :unhandled_messages" do
-          message_bus.register(:foo, message_handler_a)
-          message_bus.register(:unhandled_message, message_handler_b)
+          # I think we probably don't want this behaviour
+          it "sends all messages to handlers for :all_messages" do
+            message_bus.register(:all_messages, message_handler_a)
 
-          message_handler_a.should_receive(:handle_foo).with(message_matching(message_type: :foo))
-          message_handler_a.should_not_receive(:handle_bar)
+            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type: :foo))
+            message_handler_a.should_receive(:handle_bar).with(message_matching(message_type: :bar))
+            message_handler_b.should_not_receive(:handle_foo)
+            message_handler_b.should_not_receive(:handle_bar)
 
-          message_handler_b.should_not_receive(:handle_unhandled_message).with(message_matching(message_type: :foo))
-          message_handler_b.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
+            message_bus.send(message_factory.build(:foo, uuid: :unused_uuid))
+            message_bus.send(message_factory.build(:bar, uuid: :unused_uuid))
+          end
 
-          message_bus.publish(message_factory.build(:foo, uuid: :unused_uuid))
-          message_bus.publish(message_factory.build(:bar, uuid: :unused_uuid))
+          it "raises an error if it finds more than one handler" do
+            message_bus.register(:foo, message_handler_a, message_handler_b)
+
+            expect {
+              message_bus.send(
+                message_factory.build(:foo, uuid: :unused_uuid)
+              )
+            }.to raise_error(
+              SimpleMessageBus::TooManyMessageHandlersError,
+              /Found 2 message handlers for "foo":.*Message Handler A.*Message Handler B/
+            )
+          end
+
+          it "sends unhandled messages to the specified handler" do
+            message_bus.register(:foo, message_handler_a)
+
+            message_handler_a.should_not_receive(:handle_unhandled_message)
+            unhandled_send_handler.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
+
+            message_bus.send(message_factory.build(:bar, uuid: :unused_uuid))
+          end
         end
       end
     end
