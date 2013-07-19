@@ -32,6 +32,8 @@ module Realm
           double("Unhanded send message handler", handle_unhandled_message: nil)
         }
 
+        let(:null_response_port) { double("Null Response Port").as_null_object }
+
         subject(:message_bus) {
           SimpleMessageBus.new(unhandled_send_handler: unhandled_send_handler)
         }
@@ -94,23 +96,31 @@ module Realm
             message_bus.register(:message_type_1, message_handler_a)
 
             message_handler_a.should_receive(:handle_message_type_1).with(
-              message_matching(message_type: :message_type_1, message_data: "foo")
+              message_matching(message_type: :message_type_1, message_data: "foo"),
+              response_port: null_response_port
             )
 
-            message_bus.send(message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "foo"))
+            message_bus.send(
+              message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "foo"),
+              response_port: null_response_port
+            )
           end
 
           # I think we probably don't want this behaviour
           it "sends all messages to handlers for :all_messages" do
             message_bus.register(:all_messages, message_handler_a)
 
-            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type: :foo))
-            message_handler_a.should_receive(:handle_bar).with(message_matching(message_type: :bar))
+            message_handler_a.should_receive(:handle_foo).with(
+              message_matching(message_type: :foo), response_port: null_response_port
+            )
+            message_handler_a.should_receive(:handle_bar).with(
+              message_matching(message_type: :bar), response_port: null_response_port
+            )
             message_handler_b.should_not_receive(:handle_foo)
             message_handler_b.should_not_receive(:handle_bar)
 
-            message_bus.send(message_factory.build(:foo, uuid: :unused_uuid))
-            message_bus.send(message_factory.build(:bar, uuid: :unused_uuid))
+            message_bus.send(message_factory.build(:foo, uuid: :unused_uuid), response_port: null_response_port)
+            message_bus.send(message_factory.build(:bar, uuid: :unused_uuid), response_port: null_response_port)
           end
 
           it "raises an error if it finds more than one handler" do
@@ -118,7 +128,8 @@ module Realm
 
             expect {
               message_bus.send(
-                message_factory.build(:foo, uuid: :unused_uuid)
+                message_factory.build(:foo, uuid: :unused_uuid),
+                response_port: null_response_port
               )
             }.to raise_error(
               SimpleMessageBus::TooManyMessageHandlersError,
@@ -132,7 +143,32 @@ module Realm
             message_handler_a.should_not_receive(:handle_unhandled_message)
             unhandled_send_handler.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
 
-            message_bus.send(message_factory.build(:bar, uuid: :unused_uuid))
+            message_bus.send(message_factory.build(:bar, uuid: :unused_uuid), response_port: null_response_port)
+          end
+
+          context "a response port" do
+            let(:response_port) {
+              double("Response Port", message_handled: nil)
+            }
+
+            before(:each) do
+              # We have to use a hash (dependencies) here because Ruby 2 blocks
+              # don't yet support keyword args
+              message_handler_a.stub(:handle_message_type_1) do |message, dependencies|
+                dependencies.fetch(:response_port).message_handled("I got #{message.message_data}")
+              end
+            end
+
+            it "lets you specify a response port" do
+              message_bus.register(:message_type_1, message_handler_a)
+
+              message_bus.send(
+                message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "some data"),
+                response_port: response_port
+              )
+
+              expect(response_port).to have_received(:message_handled).with("I got some data")
+            end
           end
         end
       end

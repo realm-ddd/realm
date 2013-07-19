@@ -19,14 +19,14 @@ module Realm
         # It would probably be much better if we just prevented registering multiple handlers
         # for messages of certain types (or add message categories, and make this apply to all
         # command category messages)
-        def send(message)
+        def send(message, response_port: required(:response_port))
           message_type = message.message_type
           handlers = handlers_for_message_type(message_type)
 
           if handlers.length == 0
             @unhandled_send_handler.handle_unhandled_message(message)
           elsif handlers.length == 1
-            publish_message_to_handler(message, handlers.first)
+            handlers.first.send(:"handle_#{message.message_type}", message, response_port: response_port)
           else
             raise TooManyMessageHandlersError.new(
               %'Found #{handlers.length} message handlers for "#{message_type}": #{handlers.inspect}'
