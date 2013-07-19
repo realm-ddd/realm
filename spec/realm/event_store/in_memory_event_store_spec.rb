@@ -10,7 +10,7 @@ module Realm
       subject(:event_store) { InMemoryEventStore.new(event_bus) }
 
       it "is an EventStore" do
-        expect(event_store).to be_a(::Realm::EventStore::EventStore)
+        expect(event_store).to be_a(::Realm::EventStore)
       end
 
       describe "#save_events" do

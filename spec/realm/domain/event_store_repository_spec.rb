@@ -9,7 +9,7 @@ module Realm
   module Domain
     describe EventStoreRepository do
       let(:event_store) {
-        double(EventStore::EventStore, save_events: nil, history_for_aggregate: [ :old_event_1, :old_event_2 ])
+        double(EventStore, save_events: nil, history_for_aggregate: [ :old_event_1, :old_event_2 ])
       }
 
       let(:aggregate_root_class) { Class.new }
