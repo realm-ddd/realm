@@ -66,6 +66,16 @@ module Realm
               expect(error.message).to include("unknown_property")
             }
           end
+
+          specify "#respond_to?(<property>)" do
+            %i[ message_type uuid version timestamp property_1 property_2 ].each do |property|
+              expect(message).to respond_to(property)
+            end
+          end
+
+          specify "#respond_to?(<normal method>)" do
+            expect(message).to respond_to(:to_s)
+          end
         end
       end
 

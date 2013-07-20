@@ -21,6 +21,10 @@ module Realm
         our_attributes == comparison_attributes
       end
 
+      def respond_to?(message_name)
+        @attributes.has_key?(message_name) || super
+      end
+
       private
 
       def method_missing(name, *args)
