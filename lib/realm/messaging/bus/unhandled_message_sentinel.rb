@@ -3,7 +3,7 @@ module Realm
     module Bus
       class UnhandledMessageSentinel
         def handle_unhandled_message(message)
-          raise UnhandledMessageError.new("Unhandled message: " + message.to_s)
+          raise UnhandledMessageError.new(message)
         end
       end
     end

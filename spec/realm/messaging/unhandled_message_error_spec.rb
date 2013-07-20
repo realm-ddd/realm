@@ -16,6 +16,7 @@ module Realm
 
       its(:message) { should match(/Unhandled message:.*test_message.*test_property.*foo/) }
       its(:domain_message) { should be(message) }
+      its(:domain_message) { should be_a(Message) }
     end
   end
 end
