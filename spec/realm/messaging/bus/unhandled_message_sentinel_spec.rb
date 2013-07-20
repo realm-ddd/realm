@@ -15,7 +15,7 @@ module Realm
 
           expect {
             message_bus.publish(message_type.new_message(uuid: :unused_uuid, message: "bar"))
-          }.to raise_error(UnhandledMessageSentinel::UnhandledMessageError) { |error|
+          }.to raise_error(UnhandledMessageError) { |error|
             expect(error.message).to include('"foo"')
             expect(error.message).to include("message:")
             expect(error.message).to include("bar")
