@@ -1,7 +1,7 @@
 module Realm
   module Messaging
     class MessageType
-      GENERIC_PROPERTIES = [ :message_type, :version, :timestamp, :uuid ].freeze
+      GENERIC_PROPERTIES = [ :message_type, :version, :timestamp ].freeze
 
       def initialize(name, properties = [ ])
         @name = name
