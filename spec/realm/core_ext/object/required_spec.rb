@@ -28,4 +28,10 @@ describe Object do
       )
     end
   end
+
+  describe "r" do
+    it "is an alias" do
+      # Just take my word for it
+    end
+  end
 end

@@ -3,4 +3,6 @@ class Object
   def required(arg)
     raise ArgumentError.new("Required keyword argument missing: #{arg.to_sym.inspect}")
   end
+
+  alias_method :r, :required
 end
