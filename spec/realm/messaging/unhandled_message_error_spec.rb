@@ -10,7 +10,7 @@ module Realm
         end
       }
 
-      let(:message) { messages.build(:test_message, uuid: nil, test_property: "foo") }
+      let(:message) { messages.build(:test_message, test_property: "foo") }
 
       subject(:error) { UnhandledMessageError.new(message) }
 

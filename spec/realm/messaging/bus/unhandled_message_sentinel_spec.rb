@@ -7,7 +7,7 @@ module Realm
     module Bus
       describe UnhandledMessageSentinel do
         let(:message_type)  { MessageType.new(:foo, [ :message ]) }
-        let(:message)       { message_type.new_message(uuid: :unused_uuid, message: "bar") }
+        let(:message)       { message_type.new_message(message: "bar") }
         let(:message_bus)   { SimpleMessageBus.new }
         subject(:handler)   { UnhandledMessageSentinel.new }
 

@@ -16,8 +16,8 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
   let(:matcher) { have_no_uncommitted_events }
 
   before(:each) do
-    event_factory.define(:this_happened, :property_1, :property_2)
-    event_factory.define(:that_happened, :property_a, :property_b)
+    event_factory.define(:this_happened, :uuid, :property_1, :property_2)
+    event_factory.define(:that_happened, :uuid, :property_a, :property_b)
   end
 
   context "no events" do

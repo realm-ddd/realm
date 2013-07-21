@@ -60,8 +60,8 @@ module Realm
               message_matching(message_type: :message_type_2, message_data: "bar")
             )
 
-            message_bus.publish(message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "foo"))
-            message_bus.publish(message_factory.build(:message_type_2, uuid: :unused_uuid, message_data: "bar"))
+            message_bus.publish(message_factory.build(:message_type_1, message_data: "foo"))
+            message_bus.publish(message_factory.build(:message_type_2, message_data: "bar"))
           end
 
           it "sends all messages to handlers for :all_messages" do
@@ -72,8 +72,8 @@ module Realm
             message_handler_b.should_not_receive(:handle_foo)
             message_handler_b.should_not_receive(:handle_bar)
 
-            message_bus.publish(message_factory.build(:foo, uuid: :unused_uuid))
-            message_bus.publish(message_factory.build(:bar, uuid: :unused_uuid))
+            message_bus.publish(message_factory.build(:foo))
+            message_bus.publish(message_factory.build(:bar))
           end
 
           it "sends unhandled messages to handlers for :unhandled_messages" do
@@ -86,8 +86,8 @@ module Realm
             message_handler_b.should_not_receive(:handle_unhandled_message).with(message_matching(message_type: :foo))
             message_handler_b.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
 
-            message_bus.publish(message_factory.build(:foo, uuid: :unused_uuid))
-            message_bus.publish(message_factory.build(:bar, uuid: :unused_uuid))
+            message_bus.publish(message_factory.build(:foo))
+            message_bus.publish(message_factory.build(:bar))
           end
         end
 
@@ -101,7 +101,7 @@ module Realm
             )
 
             message_bus.send(
-              message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "foo"),
+              message_factory.build(:message_type_1, message_data: "foo"),
               response_port: null_response_port
             )
           end
@@ -119,8 +119,8 @@ module Realm
             message_handler_b.should_not_receive(:handle_foo)
             message_handler_b.should_not_receive(:handle_bar)
 
-            message_bus.send(message_factory.build(:foo, uuid: :unused_uuid), response_port: null_response_port)
-            message_bus.send(message_factory.build(:bar, uuid: :unused_uuid), response_port: null_response_port)
+            message_bus.send(message_factory.build(:foo), response_port: null_response_port)
+            message_bus.send(message_factory.build(:bar), response_port: null_response_port)
           end
 
           it "raises an error if it finds more than one handler" do
@@ -128,7 +128,7 @@ module Realm
 
             expect {
               message_bus.send(
-                message_factory.build(:foo, uuid: :unused_uuid),
+                message_factory.build(:foo),
                 response_port: null_response_port
               )
             }.to raise_error(
@@ -143,7 +143,7 @@ module Realm
             message_handler_a.should_not_receive(:handle_unhandled_message)
             unhandled_send_handler.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
 
-            message_bus.send(message_factory.build(:bar, uuid: :unused_uuid), response_port: null_response_port)
+            message_bus.send(message_factory.build(:bar), response_port: null_response_port)
           end
 
           context "a response port" do
@@ -163,7 +163,7 @@ module Realm
               message_bus.register(:message_type_1, message_handler_a)
 
               message_bus.send(
-                message_factory.build(:message_type_1, uuid: :unused_uuid, message_data: "some data"),
+                message_factory.build(:message_type_1, message_data: "some data"),
                 response_port: response_port
               )
 

@@ -18,8 +18,8 @@ module Realm
           # We currently have to force a UUID because the messaging system was initially written
           # to only handle events for domain aggregates (which alwoys have a UUID)
           expect(
-            block_factory.build(:my_message_type, only_property: "foo", uuid: nil)
-          ).to match_message_description(message_type: :my_message_type, only_property: "foo", uuid: nil)
+            block_factory.build(:my_message_type, only_property: "foo")
+          ).to match_message_description(message_type: :my_message_type, only_property: "foo")
         end
       end
 

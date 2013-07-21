@@ -23,7 +23,7 @@ module Realm
         context "providing missing/superflous attributes" do
           it "includes all relevant details when building the error" do
             expect {
-              message_type.new_message(uuid: :sample_uuid, property_1: "attribute 1", property_4: "attribute 4")
+              message_type.new_message(property_1: "attribute 1", property_4: "attribute 4")
             }.to raise_error(MessagePropertyError) { |error|
               expect(error.message).to include("test_message_type", "property_2", "property_4")
             }
@@ -32,7 +32,7 @@ module Realm
 
         describe "a built Message" do
           let(:message) {
-            message_type.new_message(uuid: :sample_uuid, property_1: "attribute 1", property_2: "attribute 2")
+            message_type.new_message(property_1: "attribute 1", property_2: "attribute 2")
           }
 
           it "has a timestamp" do
@@ -41,7 +41,7 @@ module Realm
 
           it "lets you override the timestamp" do
             message = message_type.new_message(
-              uuid: :sample_uuid, property_1: "attribute 1", property_2: "attribute 2",
+              property_1: "attribute 1", property_2: "attribute 2",
               timestamp: :overridden_timestamp
             )
             expect(message.timestamp).to be == :overridden_timestamp
