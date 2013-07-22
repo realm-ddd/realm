@@ -7,7 +7,7 @@ module Realm
   module Systems
     module IdAccess
       module Services
-        describe AlKindi do
+        describe AlKindi, speed: :slow do
           subject(:cryptographer) { AlKindi.new }
 
           describe "#encrypt_password" do
