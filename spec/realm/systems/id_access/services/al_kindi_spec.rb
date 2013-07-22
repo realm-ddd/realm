@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'benchmark'
 
 require 'realm/systems/id_access/services/al_kindi'
 
@@ -9,10 +10,6 @@ module Realm
         describe AlKindi do
           subject(:cryptographer) { AlKindi.new }
 
-          it "is not vulnerable to timing attacks" do
-            pending "http://www.ruby-doc.org/stdlib-2.0/libdoc/openssl/rdoc/OpenSSL/PKCS5.html#method-c-pbkdf2_hmac"
-          end
-
           describe "#encrypt_password" do
             subject(:encrypted_password) {
               cryptographer.encrypt_password("correct horse battery staple")
@@ -20,6 +17,14 @@ module Realm
 
             specify "Base64 encoded" do
               # Take my word for it
+            end
+
+            it "is slow" do
+              expect(
+                Benchmark.realtime do
+                  cryptographer.encrypt_password("correct horse battery staple")
+                end
+              ).to be > 0.01 # seconds
             end
 
             specify "re-encryption with correct salt" do
@@ -41,15 +46,20 @@ module Realm
             specify "re-encryption with incorrect salt" do
               expect {
                 cryptographer.encrypt_password(
-                  "correct horse battery staple", salt: "16bytesascii8bit"
+                  "correct horse battery staple", salt: "wrong salt not even encoded properly"
                 )
               }.to_not be == encrypted_password[:encrypted_password]
             end
 
             describe "encryption parameters" do
+              specify "version (for future backwards compatibility)" do
+                expect(encrypted_password[:version]).to be == 1
+              end
+
               specify "algorithm" do
                 expect(encrypted_password[:algorithm]).to be == "PBKDF2-HMAC"
               end
+
               specify "iterations" do
                 expect(encrypted_password[:iterations]).to be == 32768
               end

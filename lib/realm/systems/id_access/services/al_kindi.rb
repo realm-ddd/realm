@@ -11,12 +11,14 @@ module Realm
             length      = digest.length
             iterations  = 32768
 
-            encrypted_password = OpenSSL::PKCS5.pbkdf2_hmac(password, salt, iterations, length, digest)
+            encrypted_password =
+              OpenSSL::PKCS5.pbkdf2_hmac(password, Base64.decode64(salt), iterations, length, digest)
 
             {
+              version:            1,
+              algorithm:          "PBKDF2-HMAC",
               encrypted_password: Base64.encode64(encrypted_password),
               salt:               salt,
-              algorithm:          "PBKDF2-HMAC",
               iterations:         32768,
               digest:             digest.class.name.split("::").last,
               length:             length
