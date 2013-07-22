@@ -4,16 +4,24 @@ module Realm
       module Application
         module CommandHandlers
           class SignUpUser
-            def initialize(user_registry: required(:user_registry), cryptographer: required(:cryptographer))
-              @user_registry = user_registry
-              @cryptographer = cryptographer
+            def initialize(user_registry: r(:user_registry), cryptographer: r(:cryptographer), validator: r(:validator))
+              @user_registry        = user_registry
+              @cryptographer        = cryptographer
+              @validator_prototype  = validator
             end
 
             def handle_sign_up_user(command, response_port: required(:response_port))
               user = create_user(command)
-              user.change_password(command.password, cryptographer: @cryptographer)
-              @user_registry.register(user)
-              response_port.user_created(uuid: user.uuid)
+              validator = @validator_prototype.dup
+              validator.validate(user)
+
+              if validator.entity_valid?
+                user.change_password(command.password, cryptographer: @cryptographer)
+                @user_registry.register(user)
+                response_port.user_created(uuid: user.uuid)
+              else
+                response_port.user_invalid(message: validator.message)
+              end
             end
 
             private

@@ -40,8 +40,17 @@ module Realm
               double("Cryptographer", hash_password: :opaque_hashed_password)
             }
 
+            let(:validator_prototype) { double("Validator", dup: validator) }
+            let(:validator) {
+              double("Validator", validate: nil, entity_valid?: entity_valid?, message: "validation message")
+            }
+
             subject(:handler) {
-              SignUpUser.new(user_registry: user_registry, cryptographer: cryptographer)
+              SignUpUser.new(
+                user_registry: user_registry,
+                cryptographer: cryptographer,
+                validator:     validator_prototype
+              )
             }
 
             describe "#sign_up_user" do
@@ -54,10 +63,16 @@ module Realm
               end
 
               context "success" do
+                let(:entity_valid?) { true }
+
                 it "makes a User" do
                   expect(Domain::User).to have_received(:create).with(
                     username: "new_username", email_address: "email@example.com"
                   )
+                end
+
+                it "validates the User" do
+                  expect(validator).to have_received(:validate).with(user)
                 end
 
                 it "sets the password" do
@@ -73,13 +88,21 @@ module Realm
                 end
               end
 
-              context "conflict" do
-                it "does something" do
-                  pending
+              context "invalid" do
+                let(:entity_valid?) { false }
+
+                it "validates the User" do
+                  expect(validator).to have_received(:validate).with(user)
+                end
+
+                it "notifies the listener" do
+                  expect(response_port).to have_received(:user_invalid).with(message: "validation message")
                 end
               end
 
-              context "invalid" do
+              context "conflict" do
+                let(:entity_valid?) { true }
+
                 it "does something" do
                   pending
                 end
