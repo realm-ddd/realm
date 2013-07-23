@@ -6,55 +6,48 @@ module Realm
   module Domain
     module Validation
       describe EmailValidator do
-        let(:prototype) { EmailValidator.new(name: :email_address) }
+        let(:validator) { EmailValidator.new }
 
-        let(:listener) { double("Validation Listener", attribute_failed_validation: nil) }
-        subject(:validator) { prototype.dup_for_listener(listener) }
-
-        describe "#attribute_declared" do
-          example "email@example.com" do
-            validator.attribute_declared(:foo, "email@example.com")
-            expect(listener).to_not have_received(:attribute_failed_validation)
-          end
-
-          example "Email.address_123@something.Example.com" do
-            validator.attribute_declared(:foo, "Email.address_123@something.Example.com")
-            expect(listener).to_not have_received(:attribute_failed_validation)
-          end
-
-          example "email" do
-            validator.attribute_declared(:foo, "email")
-            expect(listener).to have_received(:attribute_failed_validation).with(:foo, :email_address)
-          end
-
-          example "email@" do
-            validator.attribute_declared(:foo, "email@")
-            expect(listener).to have_received(:attribute_failed_validation).with(:foo, :email_address)
-          end
-
-          example "email@example" do
-            validator.attribute_declared(:foo, "email@example")
-            expect(listener).to have_received(:attribute_failed_validation).with(:foo, :email_address)
-          end
-
-          example "email @example" do
-            validator.attribute_declared(:foo, "email @example")
-            expect(listener).to have_received(:attribute_failed_validation).with(:foo, :email_address)
-          end
-
-          example "email@example." do
-            validator.attribute_declared(:foo, "email@example.")
-            expect(listener).to have_received(:attribute_failed_validation).with(:foo, :email_address)
-          end
-
-          # This is normal Ruby behaviour, but as I toyed with the idea of
-          # using #to_str string coercion, I left this in to be explicit
-          example "completely invalid input" do
-            expect {
-              validator.attribute_declared(:foo, Object.new)
-            }.to raise_error(TypeError)
-          end
+        context "email@example.com" do
+          subject(:result)  { validator.validate("email@example.com") }
+          its(:valid?)      { should be_true }
         end
+
+        context "Email.address_123@something.Example.com" do
+          subject(:result)  { validator.validate("Email.address_123@something.Example.com") }
+          its(:valid?)      { should be_true }
+        end
+
+        context "email" do
+          subject(:result)  { validator.validate("email") }
+          its(:valid?)      { should be_false }
+        end
+
+        context "email@" do
+          subject(:result)  { validator.validate("email@") }
+          its(:valid?)      { should be_false }
+        end
+
+        context "email@example" do
+          subject(:result)  { validator.validate("email@example") }
+          its(:valid?)      { should be_false }
+        end
+
+        context "email @example" do
+          subject(:result)  { validator.validate("email @example") }
+          its(:valid?)      { should be_false }
+        end
+
+        context "email@example." do
+          subject(:result)  { validator.validate("email@example.") }
+          its(:valid?)      { should be_false }
+        end
+
+        context "completely invalid input" do
+          subject(:result)  { validator.validate("completely invalid input") }
+          its(:valid?)      { should be_false }
+        end
+
       end
     end
   end

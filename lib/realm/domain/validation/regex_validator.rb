@@ -1,26 +1,16 @@
+require_relative 'validation_result'
+
 module Realm
   module Domain
     module Validation
       class RegexValidator
-        def initialize(regex, name: required(:name))
+        def initialize(regex)
           @regex = regex
-          @name  = name
         end
 
-        def dup_for_listener(listener)
-          dup.tap do |new_validator|
-            new_validator.send_notifications_to(listener)
-          end
-        end
-
-        # Public, but you probably want to use the helper method above
-        def send_notifications_to(listener)
-          @listener = listener
-        end
-
-        def attribute_declared(property, attribute)
-          if !@regex.match(attribute)
-            @listener.attribute_failed_validation(property, @name)
+        def validate(value)
+          ValidationResult.new do |result|
+            result.invalid unless @regex.match(value)
           end
         end
       end
