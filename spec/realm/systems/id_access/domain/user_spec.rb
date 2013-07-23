@@ -27,20 +27,6 @@ module Realm
                 }
               )
             end
-
-            describe "described attributes (for validation)" do
-              let(:listener) { double("Validation Listener", attribute_declared: nil) }
-
-              specify "username" do
-                user.declare_username(listener)
-                expect(listener).to have_received(:attribute_declared).with(:username, "new_username")
-              end
-
-              specify "email_address" do
-                user.declare_email_address(listener)
-                expect(listener).to have_received(:attribute_declared).with(:email_address, "email@example.com")
-              end
-            end
           end
 
           describe "#change_password" do

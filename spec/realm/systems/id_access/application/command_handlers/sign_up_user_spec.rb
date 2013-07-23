@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+require 'realm/spec/validators'
+
 require 'realm/systems/id_access/application/commands'
 require 'realm/systems/id_access/application/command_handlers/sign_up_user'
 require 'realm/systems/id_access/domain/user'
@@ -40,16 +42,11 @@ module Realm
               double("Cryptographer", hash_password: :opaque_hashed_password)
             }
 
-            let(:validator_prototype) { double("Validator", dup: validator) }
-            let(:validator) {
-              double("Validator", validate: nil, entity_valid?: entity_valid?, message: "validation message")
-            }
-
             subject(:handler) {
               SignUpUser.new(
                 user_registry: user_registry,
                 cryptographer: cryptographer,
-                validator:     validator_prototype
+                validator:     validator
               )
             }
 
@@ -63,7 +60,7 @@ module Realm
               end
 
               context "success" do
-                let(:entity_valid?) { true }
+                let(:validator) { Realm::Domain::Validation::AlwaysValidValidator.new }
 
                 it "makes a User" do
                   expect(Domain::User).to have_received(:create).with(
@@ -72,7 +69,7 @@ module Realm
                 end
 
                 it "validates the User" do
-                  expect(validator).to have_received(:validate).with(user)
+                  expect(validator).to have_been_used_to_validate(command)
                 end
 
                 it "sets the password" do
@@ -89,10 +86,14 @@ module Realm
               end
 
               context "invalid" do
-                let(:entity_valid?) { false }
+                let(:validator) { Realm::Domain::Validation::AlwaysInvalidValidator.new(message: "validation message") }
+
+                it "doesn't make a User" do
+                  expect(Domain::User).to_not have_received(:create)
+                end
 
                 it "validates the User" do
-                  expect(validator).to have_received(:validate).with(user)
+                  expect(validator).to have_been_used_to_validate(command)
                 end
 
                 it "notifies the listener" do
@@ -101,7 +102,7 @@ module Realm
               end
 
               context "conflict" do
-                let(:entity_valid?) { true }
+                let(:validator) { Realm::Domain::Validation::AlwaysInvalidValidator.new(message: "validation message") }
 
                 it "does something" do
                   pending

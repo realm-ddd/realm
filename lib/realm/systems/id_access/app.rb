@@ -40,7 +40,7 @@ module Realm
           {
             commands: {
               sign_up_user: {
-                validator: Realm::Domain::Validation::EntityValidator.new
+                validator: Realm::Domain::Validation::CommandValidator.new
               }
             }
           }

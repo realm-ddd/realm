@@ -19,24 +19,19 @@ module Realm
             )
           end
 
-          def declare_username(listener)
-            listener.attribute_declared(:username, @username)
-          end
-
-          def declare_email_address(listener)
-            listener.attribute_declared(:email_address, @email_address)
-          end
-
           private
 
           def apply_user_created(event)
             @uuid           = event.uuid
-            @username       = event.username
-            @email_address  = event.email_address
+            # Commented out until we find a use for these. In fact,
+            # the challenge is to find a reason we actually need to
+            # use these here.
+            # @username       = event.username
+            # @email_address  = event.email_address
           end
 
           def apply_password_changed(event)
-            # Commented out until we actually need them...
+            # Commented out until we actually need it...
             # @encrypted_password = event.encrypted_password
           end
 
