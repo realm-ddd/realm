@@ -17,6 +17,13 @@ module Realm
               double(Domain::UserRegistry, register: nil)
             }
 
+            let(:user_service) {
+              double("UserService",
+                username_available?:      username_available?,
+                email_address_available?: email_address_available?
+              )
+            }
+
             let(:user) {
               double(Domain::User, uuid: :user_uuid, change_password: nil)
             }
@@ -45,6 +52,7 @@ module Realm
             subject(:handler) {
               SignUpUser.new(
                 user_registry: user_registry,
+                user_service:  user_service,
                 cryptographer: cryptographer,
                 validator:     validator
               )
@@ -60,6 +68,9 @@ module Realm
               end
 
               context "success" do
+                let(:username_available?)       { true }
+                let(:email_address_available?)  { true }
+
                 let(:validator) { Realm::Domain::Validation::AlwaysValidValidator.new }
 
                 it "makes a User" do
@@ -86,6 +97,9 @@ module Realm
               end
 
               context "invalid" do
+                let(:username_available?)       { true }
+                let(:email_address_available?)  { true }
+
                 let(:validator) { Realm::Domain::Validation::AlwaysInvalidValidator.new(message: "validation message") }
 
                 it "doesn't make a User" do
@@ -102,10 +116,41 @@ module Realm
               end
 
               context "conflict" do
-                let(:validator) { Realm::Domain::Validation::AlwaysInvalidValidator.new(message: "validation message") }
+                # The command is valid, but the username / email are taken
+                let(:validator) { Realm::Domain::Validation::AlwaysValidValidator.new }
 
-                it "does something" do
-                  pending
+                context "username taken" do
+                  let(:username_available?)       { false }
+                  let(:email_address_available?)  { true }
+
+                  it "checks the username" do
+                    expect(user_service).to have_received(:username_available?).with("new_username")
+                  end
+
+                  it "doesn't register the User" do
+                    expect(user_registry).to_not have_received(:register)
+                  end
+
+                  it "notifies the listener" do
+                    expect(response_port).to have_received(:user_conflicts).with(message: "Username taken")
+                  end
+                end
+
+                context "email address taken" do
+                  let(:username_available?)       { true }
+                  let(:email_address_available?)  { false }
+
+                  it "checks the email address" do
+                    expect(user_service).to have_received(:email_address_available?).with("email@example.com")
+                  end
+
+                  it "doesn't register the User" do
+                    expect(user_registry).to_not have_received(:register)
+                  end
+
+                  it "notifies the listener" do
+                    expect(response_port).to have_received(:user_conflicts).with(message: "Email address taken")
+                  end
                 end
               end
             end

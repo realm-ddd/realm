@@ -4,8 +4,12 @@ module Realm
       module Application
         module CommandHandlers
           class SignUpUser
-            def initialize(user_registry: r(:user_registry), cryptographer: r(:cryptographer), validator: r(:validator))
+            def initialize(user_registry: required(:user_registry),
+                           user_service:  required(:user_service),
+                           cryptographer: required(:cryptographer),
+                           validator:     required(:validator))
               @user_registry  = user_registry
+              @user_service   = user_service
               @cryptographer  = cryptographer
               @validator      = validator
             end
@@ -16,8 +20,14 @@ module Realm
               if validation_result.valid?
                 user = create_user(command)
                 user.change_password(command.password, cryptographer: @cryptographer)
-                @user_registry.register(user)
-                response_port.user_created(uuid: user.uuid)
+                if !@user_service.username_available?(command.username)
+                  response_port.user_conflicts(message: "Username taken")
+                elsif !@user_service.email_address_available?(command.email_address)
+                  response_port.user_conflicts(message: "Email address taken")
+                else
+                  @user_registry.register(user)
+                  response_port.user_created(uuid: user.uuid)
+                end
               else
                 response_port.user_invalid(message: validation_result.message)
               end

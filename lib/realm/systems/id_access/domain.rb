@@ -9,3 +9,4 @@ end
 require_relative 'domain/events'
 require_relative 'domain/user'
 require_relative 'domain/user_registry'
+require_relative 'domain/user_service'

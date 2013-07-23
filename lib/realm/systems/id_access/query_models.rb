@@ -1,0 +1,1 @@
+require_relative 'query_models/registered_users'
