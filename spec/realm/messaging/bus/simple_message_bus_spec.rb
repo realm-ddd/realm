@@ -42,6 +42,14 @@ module Realm
           expect(message_bus).to be_a(MessageBus)
         end
 
+        describe "#register" do
+          it "returns the bus (for chanining)" do
+            expect(
+              message_bus.register(:message_type_1, message_handler_a)
+            ).to equal(message_bus)
+          end
+        end
+
         describe "#publish" do
           it "sends messages to registered handlers" do
             message_bus.register(:message_type_1, message_handler_a, message_handler_b)
@@ -62,6 +70,12 @@ module Realm
 
             message_bus.publish(message_factory.build(:message_type_1, message_data: "foo"))
             message_bus.publish(message_factory.build(:message_type_2, message_data: "bar"))
+          end
+
+          it "returns nil" do
+            expect(
+              message_bus.publish(message_factory.build(:message_type_1, message_data: "foo"))
+            ).to be_nil
           end
 
           it "sends all messages to handlers for :all_messages" do
@@ -92,6 +106,17 @@ module Realm
         end
 
         describe "#send" do
+          it "returns nil" do
+            message_bus.register(:message_type_1, message_handler_a)
+
+            expect(
+              message_bus.send(
+                message_factory.build(:message_type_1, message_data: "foo"),
+                response_port: null_response_port
+              )
+            ).to be_nil
+          end
+
           it "sends messages to the one registered handler" do
             message_bus.register(:message_type_1, message_handler_a)
 
@@ -106,15 +131,17 @@ module Realm
             )
           end
 
-          # I think we probably don't want this behaviour
-          it "sends all messages to handlers for :all_messages" do
+          # It only makes sense to send the response port to explicit handlers, as we expect
+          # only one of them. This makes the code here a bit hacky, but fortunately at least
+          # simplifies the MessageLogger which therefore doesn't neet to worry about it.
+          it "sends all messages to handlers for :all_messages, not the response port" do
             message_bus.register(:all_messages, message_handler_a)
 
             message_handler_a.should_receive(:handle_foo).with(
-              message_matching(message_type: :foo), response_port: null_response_port
+              message_matching(message_type: :foo)
             )
             message_handler_a.should_receive(:handle_bar).with(
-              message_matching(message_type: :bar), response_port: null_response_port
+              message_matching(message_type: :bar)
             )
             message_handler_b.should_not_receive(:handle_foo)
             message_handler_b.should_not_receive(:handle_bar)
@@ -135,6 +162,20 @@ module Realm
               SimpleMessageBus::TooManyMessageHandlersError,
               /Found 2 message handlers for "foo":.*Message Handler A.*Message Handler B/
             )
+          end
+
+          it "doesn't count an :all_messages handler towards the handler count" do
+            message_bus.register(:message_type_1, message_handler_a)
+            message_bus.register(:all_messages, message_handler_b)
+
+            begin
+              message_bus.send(
+                message_factory.build(:message_type_1, message_data: :unimportant),
+                response_port: null_response_port
+              )
+            rescue SimpleMessageBus::TooManyMessageHandlersError => error
+              expect(error).to be_nil
+            end
           end
 
           it "sends unhandled messages to the specified handler" do

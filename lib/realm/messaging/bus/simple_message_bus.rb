@@ -13,6 +13,7 @@ module Realm
 
         def register(message_type, *handlers)
           @handlers[message_type.to_sym].concat(handlers)
+          self
         end
 
         # Send to a single registered handler
@@ -21,17 +22,21 @@ module Realm
         # command category messages)
         def send(message, response_port: required(:response_port))
           message_type = message.message_type
-          handlers = handlers_for_message_type(message_type)
+          explicit_handlers = explicit_handlers_for_message_type(message_type)
 
-          if handlers.length == 0
+          if explicit_handlers.length == 0
             @unhandled_send_handler.handle_unhandled_message(message)
-          elsif handlers.length == 1
-            handlers.first.send(:"handle_#{message.message_type}", message, response_port: response_port)
+          elsif explicit_handlers.length == 1
+            explicit_handlers.first.send(:"handle_#{message.message_type}", message, response_port: response_port)
           else
             raise TooManyMessageHandlersError.new(
-              %'Found #{handlers.length} message handlers for "#{message_type}": #{handlers.inspect}'
+              %'Found #{explicit_handlers.length} message handlers for "#{message_type}": #{explicit_handlers.inspect}'
             )
           end
+
+          publish_message_to_handlers(message, handlers_for_all_messages)
+
+          nil
         end
 
         # Broadcast
@@ -43,6 +48,8 @@ module Realm
           else
             publish_message_to_unhandled_message_handlers(message)
           end
+
+          nil
         end
 
         private
@@ -68,7 +75,15 @@ module Realm
         end
 
         def handlers_for_message_type(message_type)
-          @handlers[message_type] + @handlers[:all_messages]
+          explicit_handlers_for_message_type(message_type) + handlers_for_all_messages
+        end
+
+        def explicit_handlers_for_message_type(message_type)
+          @handlers[message_type]
+        end
+
+        def handlers_for_all_messages
+          @handlers[:all_messages]
         end
       end
     end
