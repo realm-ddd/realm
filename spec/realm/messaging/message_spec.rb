@@ -42,6 +42,29 @@ module Realm
       its(:timestamp)   { should be == :test_timestamp }
       its(:uuid)        { should be == :test_uuid }
 
+      describe "#output_to" do
+        let(:formatter) { double("MessageFormatter", format: "formatted_message") }
+
+        it "formats with the formatted" do
+          message.output_to(formatter)
+          expect(formatter).to have_received(:format).with(
+            category:   :message,
+            type:       :test_message_type,
+            version:    1,
+            timestamp:  :test_timestamp,
+            attributes: {
+              uuid:       :test_uuid,
+              property_1: "attribute 1",
+              property_2: nil
+            }
+          )
+        end
+
+        it "returns the formatted value" do
+          expect(message.output_to(formatter)).to be == "formatted_message"
+        end
+      end
+
       describe "properties" do
         context "message_type" do
           def test_message_attributes

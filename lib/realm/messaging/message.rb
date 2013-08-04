@@ -4,12 +4,22 @@ require 'facets/hash/op_sub'
 module Realm
   module Messaging
     class Message
+      GENERIC_PROPERTIES = %i[
+        message_type
+        version
+        timestamp
+      ].freeze
+
       def initialize(attributes)
         @attributes = sanitize_attributes(attributes)
       end
 
       def to_s
         %Q{<Message type="#{@attributes[:message_type]}" attributes=[#{attributes_to_s}]>}
+      end
+
+      def output_to(formatter)
+        formatter.format(to_h)
       end
 
       def matches?(message_description)
@@ -27,10 +37,25 @@ module Realm
 
       private
 
+      # Maybe one day we'll pre-generate classes for each message type, but not now
       def method_missing(name, *args)
         @attributes.fetch(name) do
           super(name, *args)
         end
+      end
+
+      def to_h
+        {
+          category:   :message,
+          type:       @attributes.fetch(:message_type),
+          version:    @attributes.fetch(:version),
+          timestamp:  @attributes.fetch(:timestamp),
+          attributes: message_specific_attributes
+        }
+      end
+
+      def message_specific_attributes
+        @attributes.reject { |key, value| GENERIC_PROPERTIES.include?(key) }
       end
 
       def sanitize_attributes(attributes)

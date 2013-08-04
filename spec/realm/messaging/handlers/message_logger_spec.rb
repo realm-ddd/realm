@@ -6,15 +6,23 @@ module Realm
   module Messaging
     module Handlers
       describe MessageLogger do
-        let(:message) { double("message", to_s: "message as string") }
-        let(:logger) { double("Logger", info: nil) }
+        let(:message)   { double("Message", output_to: "formatted_message") }
+        let(:formatter) { double("Formatter") }
+        let(:logger)    { double("Logger", info: nil) }
 
-        subject(:handler) { MessageLogger.new(logger) }
+        subject(:handler) {
+          MessageLogger.new(format_with: formatter, log_to: logger)
+        }
 
         describe "handling messages" do
-          example "handle_foo" do
+          it "formats the message" do
             handler.handle_foo(message)
-            expect(logger).to have_received(:info).with("message as string")
+            expect(message).to have_received(:output_to).with(formatter)
+          end
+
+          it "logs the formatted message" do
+            handler.handle_foo(message)
+            expect(logger).to have_received(:info).with("formatted_message")
           end
 
           specify "only handle_* messages are caught" do
