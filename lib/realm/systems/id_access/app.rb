@@ -22,6 +22,14 @@ module Realm
           # Query models first because command handlers may depend on them
           connect_query_models
           connect_command_handlers
+          connect_application_services
+
+          # Allow people to capture the app by calling app = App.new.boot
+          self
+        end
+
+        def application_services
+          @application_services ||= Hash.new
         end
 
         private
@@ -42,6 +50,10 @@ module Realm
             query_model_class: QueryModels::RegisteredUsers,
             events:           [ :user_created ]
           )
+        end
+
+        def connect_application_services
+          application_services[:user_service] = user_service
         end
 
         # Hijacked from Harvest, maybe we could put this on the message bus?

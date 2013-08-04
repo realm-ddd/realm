@@ -1,3 +1,5 @@
+require 'realm'
+
 module Realm
   module Systems
     module IdAccess; end
