@@ -3,12 +3,41 @@ module Realm
     class UnhandledMessageError < RuntimeError
       attr_reader :domain_message
 
-      def initialize(domain_message)
-        @domain_message = domain_message
+      class PretendSymbolIsAMessage
+        def initialize(symbol)
+          @symbol = symbol
+        end
+
+        def to_s
+          @symbol.inspect
+        end
+
+        def message_type
+          @symbol
+        end
+      end
+
+      def initialize(message)
+        @domain_message = wrap_message(message)
       end
 
       def message
         "Unhandled message: " + @domain_message.to_s
+      end
+
+      def message_type
+        @domain_message.message_type
+      end
+
+      private
+
+      def wrap_message(message)
+        case message
+        when Message
+          message
+        when Symbol
+          PretendSymbolIsAMessage.new(message)
+        end
       end
     end
   end
