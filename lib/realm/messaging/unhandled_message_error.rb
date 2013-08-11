@@ -33,10 +33,9 @@ module Realm
 
       def wrap_message(message)
         case message
-        when Message
-          message
-        when Symbol
-          PretendSymbolIsAMessage.new(message)
+        when Message then message
+        when Symbol   then PretendSymbolIsAMessage.new(message)
+        else message # Probably a mock
         end
       end
     end

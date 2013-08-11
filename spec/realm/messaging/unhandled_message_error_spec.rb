@@ -33,10 +33,33 @@ module Realm
 
         its(:message) { should match(/Unhandled message:.*:some_message_name/) }
 
+        # Because we know we need some sort of decorator to get the right behaviour...
+        its(:domain_message) { should_not be(message) }
+
         specify {
           expect(error.domain_message.to_s).to be == ":some_message_name"
         }
+
         its(:message_type) { should be == :some_message_name }
+      end
+
+      context "with anything else (you're on your own)" do
+        let(:message) {
+          double("Message",
+            message_type: :stubbed_message_type, to_s: "message#to_s"
+          )
+        }
+
+        subject(:error) { UnhandledMessageError.new(message) }
+
+        its(:message) { should match(/Unhandled message:.*message#to_s/) }
+
+        its(:domain_message) { should be(message) }
+
+        specify {
+          expect(error.domain_message.to_s).to be == "message#to_s"
+        }
+        its(:message_type) { should be == :stubbed_message_type }
       end
     end
   end
