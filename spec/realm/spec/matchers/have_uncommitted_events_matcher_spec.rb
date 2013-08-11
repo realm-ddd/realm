@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 require 'realm/domain'
-require 'realm/spec'
+require 'realm/spec/matchers'
 
 describe "expect(aggregate_root).to have_uncommitted_events(...)" do
   let(:event_factory) { Realm::Messaging::MessageFactory.new }

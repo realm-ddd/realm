@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 require 'realm/domain'
-require 'realm/spec'
+require 'realm/spec/matchers'
 
 describe "message matching" do
   let(:message_type) {

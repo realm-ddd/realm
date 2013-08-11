@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 require 'realm/messaging'
+require 'realm/spec/matchers'
 
 module Realm
   module Messaging

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-require 'realm/spec/validators'
+require 'realm/spec/domain/validation'
 
 require 'realm/systems/id_access/application/commands'
 require 'realm/systems/id_access/application/command_handlers/sign_up_user'
