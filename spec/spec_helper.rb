@@ -1,3 +1,4 @@
+require 'timeout'
 require 'ap'
 
 require 'realm'
@@ -12,5 +13,11 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     # Disable the `should` syntax
     c.syntax = :expect
+  end
+
+  config.around(:each, async: true) do |example|
+    Timeout::timeout(1) do
+      example.run
+    end
   end
 end
