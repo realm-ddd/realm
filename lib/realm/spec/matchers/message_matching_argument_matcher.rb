@@ -6,7 +6,7 @@ module Realm
       end
 
       def ==(message)
-        message.matches?(@message_description)
+        message.respond_to?(:matches?) && message.matches?(@message_description)
       end
     end
 

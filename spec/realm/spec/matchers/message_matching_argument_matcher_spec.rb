@@ -19,6 +19,12 @@ module Realm
         expect(message_matching(message_type: :test_message_type, foo: "baz")).to_not be == message
       end
 
+      context "argument is not a matcher" do
+        it "doesn't match (as opposed to raising an unexpected error)" do
+          expect(message_matching(message_type: :test_message_type, foo: "baz")).to_not be == :not_a_message
+        end
+      end
+
       describe "aliases" do
         specify "#event_matching" do
           expect(event_matching(message_type: :test_message_type, foo: "bar")).to be == message
