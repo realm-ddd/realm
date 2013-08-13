@@ -27,7 +27,12 @@ module Realm
             )
           }
 
-          let(:event_bus) { Messaging::Bus::SimpleMessageBus.new }
+          # We need this dependency for the bus even though it's only used
+          # for #send - either we need to change the design or provide a way
+          # to construct this without an explicit unused dependency here
+          let(:result_factory) { :_unused_ }
+
+          let(:event_bus) { Messaging::Bus::SimpleMessageBus.new(result_factory: result_factory) }
           subject(:view) { RegisteredUsers.new(database) }
 
           before(:each) do

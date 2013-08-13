@@ -29,14 +29,19 @@ module Realm
         let(:message_handler_c) {
           double("Message Handler C", handle_message_type_2: nil)
         }
+
+        # The next three exist only for #send, not #publish
+        let(:result_factory) { double("ResultFactory", new_unresolved_result: result) }
+        let(:result) { double("Result") }
         let(:unhandled_send_handler) {
           double("Unhanded send message handler", handle_unhandled_message: nil)
         }
 
-        let(:null_response_port) { double("Null Response Port").as_null_object }
-
         subject(:message_bus) {
-          SimpleMessageBus.new(unhandled_send_handler: unhandled_send_handler)
+          SimpleMessageBus.new(
+            result_factory:         result_factory,
+            unhandled_send_handler: unhandled_send_handler
+          )
         }
 
         it "is an MessageBus" do
@@ -107,15 +112,21 @@ module Realm
         end
 
         describe "#send" do
-          it "returns nil" do
+          let(:fake_message) { double("Message", message_type: :fake_message) }
+
+          it "constructs a result" do
+            message_bus.send(fake_message)
+            expect(result_factory).to have_received(:new_unresolved_result).with(fake_message)
+          end
+
+          it "returns the result" do
             message_bus.register(:message_type_1, message_handler_a)
 
             expect(
               message_bus.send(
-                message_factory.build(:message_type_1, message_data: "foo"),
-                response_port: null_response_port
+                message_factory.build(:message_type_1, message_data: "foo")
               )
-            ).to be_nil
+            ).to be(result)
           end
 
           it "sends messages to the one registered handler" do
@@ -123,12 +134,11 @@ module Realm
 
             message_handler_a.should_receive(:handle_message_type_1).with(
               message_matching(message_type: :message_type_1, message_data: "foo"),
-              response_port: null_response_port
+              response_port: result
             )
 
             message_bus.send(
-              message_factory.build(:message_type_1, message_data: "foo"),
-              response_port: null_response_port
+              message_factory.build(:message_type_1, message_data: "foo")
             )
           end
 
@@ -147,18 +157,15 @@ module Realm
             message_handler_b.should_not_receive(:handle_foo)
             message_handler_b.should_not_receive(:handle_bar)
 
-            message_bus.send(message_factory.build(:foo), response_port: null_response_port)
-            message_bus.send(message_factory.build(:bar), response_port: null_response_port)
+            message_bus.send(message_factory.build(:foo))
+            message_bus.send(message_factory.build(:bar))
           end
 
           it "raises an error if it finds more than one handler" do
             message_bus.register(:foo, message_handler_a, message_handler_b)
 
             expect {
-              message_bus.send(
-                message_factory.build(:foo),
-                response_port: null_response_port
-              )
+              message_bus.send(message_factory.build(:foo))
             }.to raise_error(
               SimpleMessageBus::TooManyMessageHandlersError,
               /Found 2 message handlers for "foo":.*Message Handler A.*Message Handler B/
@@ -171,8 +178,7 @@ module Realm
 
             begin
               message_bus.send(
-                message_factory.build(:message_type_1, message_data: :unimportant),
-                response_port: null_response_port
+                message_factory.build(:message_type_1, message_data: :unimportant)
               )
             rescue SimpleMessageBus::TooManyMessageHandlersError => error
               expect(error).to be_nil
@@ -185,13 +191,14 @@ module Realm
             message_handler_a.should_not_receive(:handle_unhandled_message)
             unhandled_send_handler.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
 
-            message_bus.send(message_factory.build(:bar), response_port: null_response_port)
+            message_bus.send(message_factory.build(:bar))
           end
 
+          # This is a very roundabout way of proving we pass the response port (result) to the handler
           context "a response port" do
-            let(:response_port) {
-              double("Response Port", message_handled: nil)
-            }
+            before(:each) do
+              result.stub(message_handled: nil)
+            end
 
             before(:each) do
               # We have to use a hash (dependencies) here because Ruby 2 blocks
@@ -205,11 +212,10 @@ module Realm
               message_bus.register(:message_type_1, message_handler_a)
 
               message_bus.send(
-                message_factory.build(:message_type_1, message_data: "some data"),
-                response_port: response_port
+                message_factory.build(:message_type_1, message_data: "some data")
               )
 
-              expect(response_port).to have_received(:message_handled).with("I got some data")
+              expect(result).to have_received(:message_handled).with("I got some data")
             end
           end
         end

@@ -6,7 +6,13 @@ module Realm
 
         class TooManyMessageHandlersError < RuntimeError; end
 
-        def initialize(unhandled_send_handler: UnhandledMessageSentinel.new)
+        def initialize(
+            result_factory: r(:result_factory),
+            unhandled_send_handler: UnhandledMessageSentinel.new
+          )
+
+          @result_factory = result_factory
+
           @handlers = Hash.new { |hash, key| hash[key] = [ ] }
           @unhandled_send_handler = unhandled_send_handler
         end
@@ -20,14 +26,16 @@ module Realm
         # It would probably be much better if we just prevented registering multiple handlers
         # for messages of certain types (or add message categories, and make this apply to all
         # command category messages)
-        def send(message, response_port: required(:response_port))
+        def send(message)
+          result = @result_factory.new_unresolved_result(message)
+
           message_type = message.message_type
           explicit_handlers = explicit_handlers_for_message_type(message_type)
 
           if explicit_handlers.length == 0
             @unhandled_send_handler.handle_unhandled_message(message)
           elsif explicit_handlers.length == 1
-            explicit_handlers.first.send(:"handle_#{message.message_type}", message, response_port: response_port)
+            explicit_handlers.first.send(:"handle_#{message.message_type}", message, response_port: result)
           else
             raise TooManyMessageHandlersError.new(
               %'Found #{explicit_handlers.length} message handlers for "#{message_type}": #{explicit_handlers.inspect}'
@@ -36,7 +44,7 @@ module Realm
 
           publish_message_to_handlers(message, handlers_for_all_messages)
 
-          nil
+          result
         end
 
         # Broadcast
