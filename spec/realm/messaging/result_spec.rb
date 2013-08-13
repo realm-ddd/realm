@@ -10,7 +10,6 @@ module Realm
 
       after(:each) { result.terminate }
 
-
       # This context taken from FakeMessageResponse
       context "handler provided" do
         context "array of arguments" do
@@ -80,38 +79,76 @@ module Realm
             { message_name: :foo, args: [  ] }
           }
 
-          let(:value) {
+          def pass_handlers_to_result
             result.on(
               foo: ->(a) { :_unused_ },
               bar: ->() { raise "we shouldn't get :bar" }
             )
+          end
+
+          let(:value) {
+            pass_handlers_to_result
           }
 
           specify "is treated as the multiple arument case" do
             result.foo("one", "two", "three")
             expect { value }.to raise_error(ArgumentError, /3 for 1/)
           end
+
+          it "doesn't crash the actor" do
+            result.foo("one", "two", "three")
+
+            # Specific negative expections are deprecated in RSpec, sigh
+            expect {
+              # First call might crash the actor
+              pass_handlers_to_result rescue nil
+              begin
+                # Second call will raise an error
+                pass_handlers_to_result
+              rescue Exception => e
+                # Swallow it unless it's a dead actor, in which case we care
+                raise if e.is_a?(Celluloid::DeadActorError)
+              end
+            }.to_not raise_error
+          end
         end
       end
 
       # This context taken from FakeMessageResponse
       context "handler not provided" do
-        let(:value) {
+        def pass_handlers_to_result
           result.on(
             bar: ->() { raise "we shouldn't get :bar" }
           )
+        end
+
+        let(:value) {
+          pass_handlers_to_result
         }
 
         # This is slighly abusing the current UnhandledMessageError
         # implementation, which expects a formal Realm message, not
         # a Ruby symbol - semantically it's still better than allowing
         # a KeyError to leak out though
-        specify {
+        it "raises an error" do
           expect {
             result.foo
             value
           }.to raise_error(UnhandledMessageError, /foo/)
-        }
+        end
+
+        it "doesn't crash the actor" do
+          result.foo
+
+          expect {
+            pass_handlers_to_result rescue nil
+            begin
+              pass_handlers_to_result
+            rescue Exception => e
+              raise if e.is_a?(Celluloid::DeadActorError)
+            end
+          }.to_not raise_error
+        end
       end
     end
   end

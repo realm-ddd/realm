@@ -18,10 +18,14 @@ module Realm
         @condition.wait unless @value_ready
 
         if !handlers.has_key?(@message_type)
-          raise UnhandledMessageError.new(@message_type)
+          abort UnhandledMessageError.new(@message_type)
         end
 
-        handlers.fetch(@message_type).call(*@message_args)
+        begin
+          handlers.fetch(@message_type).call(*@message_args)
+        rescue ArgumentError => e
+          abort e
+        end
       end
 
       # Hacky way of handling messages while we don't have an explicit
