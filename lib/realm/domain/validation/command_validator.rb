@@ -3,8 +3,6 @@ require_relative 'validation_result'
 module Realm
   module Domain
     module Validation
-      class ValidatorStateError < RuntimeError; end
-
       class CommandValidator
         def initialize(validators: { }, messages: { })
           @validators = validators
