@@ -3,6 +3,7 @@ require 'ap'
 
 require 'realm'
 require 'realm/spec'
+require 'realm/spec/matchers'
 
 RSpec.configure do |config|
   config.filter_run(focus: true)

@@ -10,9 +10,15 @@ module Realm
         extend Realm::Domain::AggregateRoot
 
         Events = Messaging::MessageFactory.new
-        Events.define(:test_aggregate_created,  :uuid, :foo)
-        Events.define(:foo_updated,             :uuid, :foo)
-        Events.define(:simple_event,            :uuid)
+        Events.define(:test_aggregate_created,
+          properties: { uuid: UUIDTools::UUID, foo: String }
+        )
+        Events.define(:foo_updated,
+          properties: { uuid: UUIDTools::UUID, foo: String }
+        )
+        Events.define(:simple_event,
+          properties: { uuid: UUIDTools::UUID }
+        )
 
         # This is a violation of CQRS, don't attach getters to real
         # aggregate roots! But this lets us test the events without

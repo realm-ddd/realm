@@ -9,8 +9,8 @@ module Realm
         builder_block[self] if block_given?
       end
 
-      def define(message_type_name, *properties)
-        @message_types[message_type_name] = @message_type_factory.new(message_type_name, properties)
+      def define(message_type_name, definition = { })
+        @message_types[message_type_name] = @message_type_factory.new(message_type_name, definition)
       end
 
       def build(message_type_name, attributes = { })

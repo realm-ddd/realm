@@ -5,7 +5,12 @@ require 'realm/messaging/message_factory'
 module Realm
   module Messaging
     describe MessageType do
-      subject(:message_type) { MessageType.new(:test_message_type, [:property_1, :property_2]) }
+      subject(:message_type) {
+        MessageType.new(:test_message_type,
+          properties: { property_1: String, property_2: String },
+          responses: [ :response_message_name_1, :response_message_name_2 ]
+        )
+      }
 
       it "can be built with no properties" do
         # RSpec 2.14 deprecation:

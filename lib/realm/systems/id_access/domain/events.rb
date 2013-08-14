@@ -3,8 +3,12 @@ module Realm
     module IdAccess
       module Domain
         Events = Messaging::MessageFactory.new do |events|
-          events.define(:user_created,      :uuid, :username, :email_address)
-          events.define(:password_changed,  :uuid, :encrypted_password)
+          events.define(:user_created,
+            properties: { uuid: String, username: String, email_address: String }
+          )
+          events.define(:password_changed,
+            properties: { uuid: String, encrypted_password: String }
+          )
         end
       end
     end

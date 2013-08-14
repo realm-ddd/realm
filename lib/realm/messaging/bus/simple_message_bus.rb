@@ -1,13 +1,21 @@
 module Realm
   module Messaging
     module Bus
+      class NoResultFactoryAvailableError < RuntimeError; end
+
+      class NullResultFactory
+        def new_unresolved_result(*)
+          raise NoResultFactoryAvailableError.new("A MessageBus must be constructed with a ResultFactory to send messages that require a response")
+        end
+      end
+
       class SimpleMessageBus
         include MessageBus
 
         class TooManyMessageHandlersError < RuntimeError; end
 
         def initialize(
-            result_factory: r(:result_factory),
+            result_factory:         NullResultFactory.new,
             unhandled_send_handler: UnhandledMessageSentinel.new
           )
 

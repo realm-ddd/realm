@@ -6,6 +6,20 @@ require 'realm/spec/matchers'
 module Realm
   module Messaging
     module Bus
+      describe NullResultFactory do
+        describe "#new_unresolved_result" do
+          let(:bus_without_result_factory) { SimpleMessageBus.new }
+
+          it "raises an error" do
+            expect {
+              bus_without_result_factory.send(:_unimportant_)
+            }.to raise_error(NoResultFactoryAvailableError,
+              "A MessageBus must be constructed with a ResultFactory to send messages that require a response"
+            )
+          end
+        end
+      end
+
       describe SimpleMessageBus do
         # It might be better to do this with MessageTypes directly,
         # eg as in the specs for the RSpec matchers
@@ -14,8 +28,8 @@ module Realm
         }
 
         before(:each) do
-          message_factory.define(:message_type_1, :message_data)
-          message_factory.define(:message_type_2, :message_data)
+          message_factory.define(:message_type_1, properties: { message_data: String })
+          message_factory.define(:message_type_2, properties: { message_data: String })
           message_factory.define(:foo)
           message_factory.define(:bar)
         end
@@ -31,8 +45,8 @@ module Realm
         }
 
         # The next three exist only for #send, not #publish
-        let(:result_factory) { double("ResultFactory", new_unresolved_result: result) }
-        let(:result) { double("Result") }
+        let(:result_factory) { double(ResultFactory, new_unresolved_result: result) }
+        let(:result) { double(Result) }
         let(:unhandled_send_handler) {
           double("Unhanded send message handler", handle_unhandled_message: nil)
         }

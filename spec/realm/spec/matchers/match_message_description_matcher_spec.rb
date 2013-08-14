@@ -5,7 +5,9 @@ require 'realm/spec/matchers'
 
 describe "message matching" do
   let(:message_type) {
-    Realm::Messaging::MessageType.new(:test_message_type, [ :foo ])
+    Realm::Messaging::MessageType.new(:test_message_type,
+      properties: { foo: String }
+    )
   }
   subject(:message) { message_type.new_message(message_type: :test_message_type, foo: "bar") }
 

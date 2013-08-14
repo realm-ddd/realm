@@ -6,7 +6,9 @@ module Realm
       context "with a domain message" do
         let(:messages) {
           MessageFactory.new do |messages|
-            messages.define(:test_message, :test_property)
+            messages.define(:test_message,
+              properties: { test_property: String }
+            )
           end
         }
 
