@@ -10,8 +10,13 @@ module Realm
       # Properties are specified as `name => type` but currently we ignore the type
       # Responses can be specified but currently don't do anything (to be added soon)
       def initialize(name, properties: { }, responses: [ ])
-        @name = name
+        @name       = name
         @properties = GENERIC_PROPERTIES.merge(properties)
+        @responses  = responses
+      end
+
+      def message_name
+        @name
       end
 
       def new_message(attributes)
@@ -22,6 +27,14 @@ module Realm
         end
 
         Message.new(augmented_attributes)
+      end
+
+      def response_to?(target)
+        target.accept_as_response?(@name)
+      end
+
+      def accept_as_response?(message_name)
+        @responses.include?(message_name)
       end
 
       private

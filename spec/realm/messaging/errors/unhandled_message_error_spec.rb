@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+require 'realm/messaging/errors'
+
 module Realm
   module Messaging
     describe UnhandledMessageError do

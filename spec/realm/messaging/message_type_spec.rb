@@ -12,6 +12,15 @@ module Realm
         )
       }
 
+      # This is currently a bit inconsistent - I think we should use message_name
+      # everywhere the symbol name is being referred to, but this is the first
+      # time I've embedded that in the implementation. Earlier references to
+      # "message_type" will need to be updatet.
+      #
+      # Also: I wanted to avoid exposing any state on the MessageType objects, but
+      # I couldn't see another sane way to test the MessageFactory response lookups
+      its(:message_name) { should be == :test_message_type }
+
       it "can be built with no properties" do
         # RSpec 2.14 deprecation:
         # DEPRECATION: `expect { }.not_to raise_error(SpecificErrorClass)` is deprecated. Use `expect { }.not_to raise_error()` instead
@@ -60,6 +69,54 @@ module Realm
             expect(message.property_1).to be == "attribute 1"
             expect(message.property_2).to be == "attribute 2"
           end
+        end
+      end
+
+      describe "#response_to?" do
+        let(:target) { double(MessageType, accept_as_response?: accept_as_response?) }
+
+        context "target accepts this as a response" do
+          let(:accept_as_response?) { true }
+
+          specify {
+            message_type.response_to?(target)
+            expect(target).to have_received(:accept_as_response?).with(:test_message_type)
+          }
+
+          specify {
+            expect(message_type).to be_response_to(target)
+          }
+        end
+
+        context "target doesn't accept this as a response" do
+          let(:accept_as_response?) { false }
+
+          specify {
+            message_type.response_to?(target)
+            expect(target).to have_received(:accept_as_response?).with(:test_message_type)
+          }
+
+          specify {
+            expect(message_type).to_not be_response_to(target)
+          }
+        end
+      end
+
+      describe "#accept_as_response?" do
+        context "given message name is a known response" do
+          specify {
+            expect(
+              message_type.accept_as_response?(:response_message_name_1)
+            ).to be_true
+          }
+        end
+
+        context "given message name is not a known response" do
+          specify {
+            expect(
+              message_type.accept_as_response?(:unknown_message_name)
+            ).to be_false
+          }
         end
       end
     end

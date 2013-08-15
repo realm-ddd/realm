@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-require 'realm/messaging'
+require 'realm/messaging/errors'
 
 module Realm
   module Messaging

@@ -1,0 +1,4 @@
+require_relative 'errors/message_property_error'
+require_relative 'errors/no_responses_found_error'
+require_relative 'errors/unhandled_message_error'
+require_relative 'errors/unknown_message_type_error'

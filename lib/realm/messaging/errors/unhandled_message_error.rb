@@ -1,6 +1,6 @@
 module Realm
   module Messaging
-    class UnhandledMessageError < RuntimeError
+    class UnhandledMessageError < MessagingError
       attr_reader :domain_message
 
       class PretendSymbolIsAMessage

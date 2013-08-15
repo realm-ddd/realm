@@ -1,7 +1,7 @@
 module Realm
   module Messaging
     module Bus
-      class NoResultFactoryAvailableError < RuntimeError; end
+      class NoResultFactoryAvailableError < MessagingError; end
 
       class NullResultFactory
         def new_unresolved_result(*)
@@ -12,7 +12,7 @@ module Realm
       class SimpleMessageBus
         include MessageBus
 
-        class TooManyMessageHandlersError < RuntimeError; end
+        class TooManyMessageHandlersError < MessagingError; end
 
         def initialize(
             result_factory:         NullResultFactory.new,

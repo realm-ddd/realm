@@ -76,10 +76,69 @@ module Realm
           it "raises an error" do
             expect {
               message_factory.build(:unknown_message_type_name)
-            }.to raise_error(MessageFactory::UnknownMessageTypeError) { |error|
+            }.to raise_error(UnknownMessageTypeError) { |error|
               expect(error.message).to include("unknown_message_type_name")
             }
           end
+        end
+      end
+
+      describe "#determine_responses_to" do
+        let(:message_factory_1) {
+          MessageFactory.new do |messages|
+            messages.define(:do_this,
+              responses: [ :this_happened, :that_happened ]
+            )
+            messages.define(:do_something_else,
+              responses: [ :the_other_happened ]
+            )
+          end
+        }
+
+        let(:message_factory_2) {
+          MessageFactory.new do |messages|
+            messages.define(:this_happened)
+            messages.define(:that_happened)
+            messages.define(:_unused_outcome_)
+          end
+        }
+
+        context "originating message type is known" do
+          let(:determined_responses) {
+            message_factory_1.determine_responses_to(:do_this, from: message_factory_2)
+          }
+
+          specify {
+            expect(determined_responses.keys.sort).to be == [ :that_happened, :this_happened ]
+            expect(determined_responses[:this_happened].message_name).to be == :this_happened
+            expect(determined_responses[:that_happened].message_name).to be == :that_happened
+          }
+        end
+
+        context "originating message type is unknown" do
+          it "raises an error" do
+            expect {
+              message_factory_1.determine_responses_to(:i_dont_know_how_to_do_this, from: message_factory_2)
+            }.to raise_error(UnknownMessageTypeError, /i_dont_know_how_to_do_this/)
+          end
+        end
+      end
+
+      describe "#select_message_types" do
+        subject(:message_factory) {
+          MessageFactory.new do |messages|
+            messages.define(:this_happened)
+            messages.define(:that_happened)
+            messages.define(:the_other_happened)
+          end
+        }
+
+        example do
+          expect(
+            message_factory.select_message_types { |type|
+              type.message_name.to_s =~ /this|other/
+            }.keys.sort
+          ).to be == [ :the_other_happened, :this_happened ]
         end
       end
     end

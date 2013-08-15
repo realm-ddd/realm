@@ -1,6 +1,6 @@
 module Realm
   module Messaging
-    class MessagePropertyError < ArgumentError
+    class MessagePropertyError < MessagingError
       def initialize(message_type_name, expected_properties, attribute_names)
         @message_type_name      = message_type_name
         @expected_properties  = expected_properties.sort
