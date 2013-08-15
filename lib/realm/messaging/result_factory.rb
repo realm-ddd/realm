@@ -11,12 +11,12 @@ module Realm
       end
 
       def new_unresolved_result(message)
-        Result.new(responses: responses_for(message.message_type_name))
+        Result.new(responses: response_for(message.message_type_name))
       end
 
       private
 
-      def responses_for(message_type_name)
+      def response_for(message_type_name)
         @commands.determine_responses_to(message_type_name, from: @responses).tap do |responses|
           raise NoResponsesFoundError.new(message_type_name) if responses.none?
         end
