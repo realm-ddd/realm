@@ -76,16 +76,16 @@ module Realm
             message_bus.register(:message_type_2, message_handler_b, message_handler_c)
 
             message_handler_a.should_receive(:handle_message_type_1).with(
-              message_matching(message_type: :message_type_1, message_data: "foo")
+              message_matching(message_type_name: :message_type_1, message_data: "foo")
             )
             message_handler_b.should_receive(:handle_message_type_1).with(
-              message_matching(message_type: :message_type_1, message_data: "foo")
+              message_matching(message_type_name: :message_type_1, message_data: "foo")
             )
             message_handler_b.should_receive(:handle_message_type_2).with(
-              message_matching(message_type: :message_type_2, message_data: "bar")
+              message_matching(message_type_name: :message_type_2, message_data: "bar")
             )
             message_handler_c.should_receive(:handle_message_type_2).with(
-              message_matching(message_type: :message_type_2, message_data: "bar")
+              message_matching(message_type_name: :message_type_2, message_data: "bar")
             )
 
             message_bus.publish(message_factory.build(:message_type_1, message_data: "foo"))
@@ -101,8 +101,8 @@ module Realm
           it "sends all messages to handlers for :all_messages" do
             message_bus.register(:all_messages, message_handler_a)
 
-            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type: :foo))
-            message_handler_a.should_receive(:handle_bar).with(message_matching(message_type: :bar))
+            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type_name: :foo))
+            message_handler_a.should_receive(:handle_bar).with(message_matching(message_type_name: :bar))
             message_handler_b.should_not_receive(:handle_foo)
             message_handler_b.should_not_receive(:handle_bar)
 
@@ -114,11 +114,11 @@ module Realm
             message_bus.register(:foo, message_handler_a)
             message_bus.register(:unhandled_message, message_handler_b)
 
-            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type: :foo))
+            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type_name: :foo))
             message_handler_a.should_not_receive(:handle_bar)
 
-            message_handler_b.should_not_receive(:handle_unhandled_message).with(message_matching(message_type: :foo))
-            message_handler_b.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
+            message_handler_b.should_not_receive(:handle_unhandled_message).with(message_matching(message_type_name: :foo))
+            message_handler_b.should_receive(:handle_unhandled_message).with(message_matching(message_type_name: :bar))
 
             message_bus.publish(message_factory.build(:foo))
             message_bus.publish(message_factory.build(:bar))
@@ -126,7 +126,7 @@ module Realm
         end
 
         describe "#send" do
-          let(:fake_message) { double("Message", message_type: :fake_message) }
+          let(:fake_message) { double("Message", message_type_name: :fake_message) }
 
           it "constructs a result" do
             message_bus.send(fake_message)
@@ -147,7 +147,7 @@ module Realm
             message_bus.register(:message_type_1, message_handler_a)
 
             message_handler_a.should_receive(:handle_message_type_1).with(
-              message_matching(message_type: :message_type_1, message_data: "foo"),
+              message_matching(message_type_name: :message_type_1, message_data: "foo"),
               response_port: result
             )
 
@@ -163,10 +163,10 @@ module Realm
             message_bus.register(:all_messages, message_handler_a)
 
             message_handler_a.should_receive(:handle_foo).with(
-              message_matching(message_type: :foo)
+              message_matching(message_type_name: :foo)
             )
             message_handler_a.should_receive(:handle_bar).with(
-              message_matching(message_type: :bar)
+              message_matching(message_type_name: :bar)
             )
             message_handler_b.should_not_receive(:handle_foo)
             message_handler_b.should_not_receive(:handle_bar)
@@ -203,7 +203,7 @@ module Realm
             message_bus.register(:foo, message_handler_a)
 
             message_handler_a.should_not_receive(:handle_unhandled_message)
-            unhandled_send_handler.should_receive(:handle_unhandled_message).with(message_matching(message_type: :bar))
+            unhandled_send_handler.should_receive(:handle_unhandled_message).with(message_matching(message_type_name: :bar))
 
             message_bus.send(message_factory.build(:bar))
           end

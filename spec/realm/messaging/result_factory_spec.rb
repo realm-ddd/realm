@@ -5,8 +5,8 @@ require 'realm/messaging/result_factory'
 module Realm
   module Messaging
     describe ResultFactory do
-      let(:do_this_message) { double(Message, message_type: :do_this) }
-      let(:do_something_else_message) { double(Message, message_type: :do_something_else) }
+      let(:do_this_message) { double(Message, message_type_name: :do_this) }
+      let(:do_something_else_message) { double(Message, message_type_name: :do_something_else) }
 
       let(:commands) {
         MessageFactory.new do |commands|

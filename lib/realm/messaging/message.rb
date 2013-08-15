@@ -5,7 +5,7 @@ module Realm
   module Messaging
     class Message
       GENERIC_PROPERTIES = %i[
-        message_type
+        message_type_name
         version
         timestamp
       ].freeze
@@ -15,7 +15,7 @@ module Realm
       end
 
       def to_s
-        %Q{<Message type="#{@attributes[:message_type]}" attributes=[#{attributes_to_s}]>}
+        %Q{<Message type="#{@attributes[:message_type_name]}" attributes=[#{attributes_to_s}]>}
       end
 
       def output_to(formatter)
@@ -31,8 +31,8 @@ module Realm
         our_attributes == comparison_attributes
       end
 
-      def respond_to?(message_name)
-        @attributes.has_key?(message_name) || super
+      def respond_to?(message_type_name)
+        @attributes.has_key?(message_type_name) || super
       end
 
       private
@@ -47,7 +47,7 @@ module Realm
       def to_h
         {
           category:   :message,
-          type:       @attributes.fetch(:message_type),
+          type:       @attributes.fetch(:message_type_name),
           version:    @attributes.fetch(:version),
           timestamp:  @attributes.fetch(:timestamp),
           attributes: message_specific_attributes
@@ -59,7 +59,7 @@ module Realm
       end
 
       def sanitize_attributes(attributes)
-        attributes.merge(message_type: attributes[:message_type].to_sym)
+        attributes.merge(message_type_name: attributes[:message_type_name].to_sym)
       end
 
       def attributes_to_s
@@ -70,11 +70,11 @@ module Realm
       end
 
       def assert_valid_message_description(message_description)
-        if !message_description.has_key?(:message_type)
-          raise ArgumentError.new("Message descriptions must include a :message_type key")
+        if !message_description.has_key?(:message_type_name)
+          raise ArgumentError.new("Message descriptions must include a :message_type_name key")
         end
 
-        return unless message_type == message_description[:message_type]
+        return unless message_type_name == message_description[:message_type_name]
 
         if !(unknown_properties = message_description.keys - @attributes.keys).empty?
           raise ArgumentError.new("Unknown Message properties: #{unknown_properties.join(", ")}")

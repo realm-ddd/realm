@@ -19,10 +19,10 @@ module Realm
         message_type.new_message(attributes)
       end
 
-      def determine_responses_to(message_name, from: required(:from))
+      def determine_responses_to(message_type_name, from: required(:from))
         originating_message_type =
-          @message_types.fetch(message_name) {
-            raise UnknownMessageTypeError.new(message_name)
+          @message_types.fetch(message_type_name) {
+            raise UnknownMessageTypeError.new(message_type_name)
           }
 
         from.select_message_types { |candidate_response|
@@ -31,8 +31,8 @@ module Realm
       end
 
       def select_message_types(&filter)
-        @message_types.inject({ }) { |result, (message_name, message_type)|
-          result[message_name] = message_type if filter[message_type]
+        @message_types.inject({ }) { |result, (message_type_name, message_type)|
+          result[message_type_name] = message_type if filter[message_type]
           result
         }
       end

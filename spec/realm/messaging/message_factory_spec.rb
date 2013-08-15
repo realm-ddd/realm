@@ -10,14 +10,16 @@ module Realm
       subject(:message_factory) { MessageFactory.new(message_type_factory) }
 
       describe ".new" do
-        example "with a block" do
-          block_factory = MessageFactory.new do |messages|
+        let(:block_factory) {
+          MessageFactory.new do |messages|
             messages.define(:my_message_type, properties: { only_property: String })
           end
+        }
 
+        example "with a block" do
           expect(
             block_factory.build(:my_message_type, only_property: "foo")
-          ).to match_message_description(message_type: :my_message_type, only_property: "foo")
+          ).to match_message_description(message_type_name: :my_message_type, only_property: "foo")
         end
       end
 
@@ -110,8 +112,8 @@ module Realm
 
           specify {
             expect(determined_responses.keys.sort).to be == [ :that_happened, :this_happened ]
-            expect(determined_responses[:this_happened].message_name).to be == :this_happened
-            expect(determined_responses[:that_happened].message_name).to be == :that_happened
+            expect(determined_responses[:this_happened].name).to be == :this_happened
+            expect(determined_responses[:that_happened].name).to be == :that_happened
           }
         end
 
@@ -136,7 +138,7 @@ module Realm
         example do
           expect(
             message_factory.select_message_types { |type|
-              type.message_name.to_s =~ /this|other/
+              type.name.to_s =~ /this|other/
             }.keys.sort
           ).to be == [ :the_other_happened, :this_happened ]
         end

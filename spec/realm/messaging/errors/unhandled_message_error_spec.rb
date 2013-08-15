@@ -23,7 +23,7 @@ module Realm
         its(:domain_message) { should be(message) }
         its(:domain_message) { should be_a(Message) }
 
-        its(:message_type) { should be == :test_message }
+        its(:message_type_name) { should be == :test_message }
       end
 
       # This is a hack to let us re-use UnhandledMessageError for symbols, argubly if
@@ -44,13 +44,13 @@ module Realm
           expect(error.domain_message.to_s).to be == ":some_message_name"
         }
 
-        its(:message_type) { should be == :some_message_name }
+        its(:message_type_name) { should be == :some_message_name }
       end
 
       context "with anything else (you're on your own)" do
         let(:message) {
           double("Message",
-            message_type: :stubbed_message_type, to_s: "message#to_s"
+            message_type_name: :stubbed_message_type, to_s: "message#to_s"
           )
         }
 
@@ -63,7 +63,7 @@ module Realm
         specify {
           expect(error.domain_message.to_s).to be == "message#to_s"
         }
-        its(:message_type) { should be == :stubbed_message_type }
+        its(:message_type_name) { should be == :stubbed_message_type }
       end
     end
   end

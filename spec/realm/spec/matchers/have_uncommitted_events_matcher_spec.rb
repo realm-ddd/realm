@@ -85,7 +85,7 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
       context "specified uncommitted events that does not match" do
         let(:matcher) {
           have_uncommitted_events(
-            { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "wrong value", property_2: "two"   }
+            { message_type_name: :this_happened, uuid: :aggregate_uuid, property_1: "wrong value", property_2: "two"   }
           )
         }
 
@@ -106,7 +106,7 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
       context "specified uncommitted event that does match" do
         let(:matcher) {
           have_uncommitted_events(
-            { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  }
+            { message_type_name: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  }
           )
         }
 
@@ -121,9 +121,9 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
         context "that match" do
           let(:matcher) {
             have_uncommitted_events(
-              { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "one", property_2: "two"   },
-              { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  },
-              { message_type: :that_happened, uuid: :aggregate_uuid, property_a: "x",   property_b: "y"     }
+              { message_type_name: :this_happened, uuid: :aggregate_uuid, property_1: "one", property_2: "two"   },
+              { message_type_name: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  },
+              { message_type_name: :that_happened, uuid: :aggregate_uuid, property_a: "x",   property_b: "y"     }
             )
           }
 
@@ -137,9 +137,9 @@ describe "expect(aggregate_root).to have_uncommitted_events(...)" do
         context "that don't match" do
           let(:matcher) {
             have_uncommitted_events(
-              { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "one", property_2: "two"   },
-              { message_type: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  },
-              { message_type: :that_happened, uuid: :aggregate_uuid, property_a: "x",   property_b: "z"     }
+              { message_type_name: :this_happened, uuid: :aggregate_uuid, property_1: "one", property_2: "two"   },
+              { message_type_name: :this_happened, uuid: :aggregate_uuid, property_1: "ein", property_2: "zwei"  },
+              { message_type_name: :that_happened, uuid: :aggregate_uuid, property_a: "x",   property_b: "z"     }
             )
           }
 

@@ -20,10 +20,10 @@ module Realm
             it "has an uncommitted :user_registered event" do
               expect(user).to have_uncommitted_events(
                 {
-                  message_type: :user_created,
-                  uuid: :generated_uuid,
-                  username: "new_username",
-                  email_address: "email@example.com"
+                  message_type_name:  :user_created,
+                  uuid:               :generated_uuid,
+                  username:           "new_username",
+                  email_address:      "email@example.com"
                 }
               )
             end
@@ -54,7 +54,7 @@ module Realm
 
             it "changes the password" do
               expect(user).to have_uncommitted_events(
-                { message_type: :password_changed, encrypted_password: { opaque: "password description" } }
+                { message_type_name: :password_changed, encrypted_password: { opaque: "password description" } }
               )
             end
           end

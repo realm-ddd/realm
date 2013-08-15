@@ -12,7 +12,7 @@ module Realm
       # Not using let to guarantee we get a new object each time
       def test_message_attributes
         {
-          message_type: :test_message_type,
+          message_type_name: :test_message_type_name,
           version: 1,
           timestamp: :test_timestamp,
           uuid: :test_uuid,
@@ -29,7 +29,7 @@ module Realm
           "1",
           "timestamp",
           ":test_timestamp",
-          "test_message_type",
+          "test_message_type_name",
           "property_1:",
           "attribute 1",
           "property_2:",
@@ -37,7 +37,7 @@ module Realm
         )
       }
 
-      its(:message_type)  { should be == :test_message_type }
+      its(:message_type_name)  { should be == :test_message_type_name }
       its(:version)     { should be == 1 }
       its(:timestamp)   { should be == :test_timestamp }
       its(:uuid)        { should be == :test_uuid }
@@ -49,7 +49,7 @@ module Realm
           message.output_to(formatter)
           expect(formatter).to have_received(:format).with(
             category:   :message,
-            type:       :test_message_type,
+            type:       :test_message_type_name,
             version:    1,
             timestamp:  :test_timestamp,
             attributes: {
@@ -66,13 +66,13 @@ module Realm
       end
 
       describe "properties" do
-        context "message_type" do
+        context "message_type_name" do
           def test_message_attributes
-            super.merge(message_type: "string_converted_to_symbol")
+            super.merge(message_type_name: "string_converted_to_symbol")
           end
 
-          it "always returns message_type as a symbol" do
-            expect(message.message_type).to be == :string_converted_to_symbol
+          it "always returns message_type_name as a symbol" do
+            expect(message.message_type_name).to be == :string_converted_to_symbol
           end
         end
 
@@ -91,7 +91,7 @@ module Realm
           end
 
           specify "#respond_to?(<property>)" do
-            %i[ message_type uuid version timestamp property_1 property_2 ].each do |property|
+            %i[ message_type_name uuid version timestamp property_1 property_2 ].each do |property|
               expect(message).to respond_to(property)
             end
           end
@@ -109,7 +109,7 @@ module Realm
 
         it "is false if the message type is different" do
           expect(message).to_not match_message_description(
-            test_message_attributes.merge(message_type: :wrong_message_type)
+            test_message_attributes.merge(message_type_name: :wrong_message_type_name)
           )
         end
 
@@ -117,7 +117,7 @@ module Realm
           expect {
             message.matches?({ })
           }.to raise_error(ArgumentError) { |error|
-            expect(error.message).to include("message_type")
+            expect(error.message).to include("message_type_name")
           }
         end
 
@@ -180,8 +180,8 @@ module Realm
           it "is just false for a different message type" do
             expect(message).to_not match_message_description(
               test_message_attributes.merge(
-                message_type: :other_message_type,
-                unknown_property: :superfluous_attribute
+                message_type_name: :other_message_type_name,
+                unknown_property:  :superfluous_attribute
               )
             )
           end

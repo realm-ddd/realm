@@ -25,8 +25,8 @@ module Realm
           @unhandled_send_handler = unhandled_send_handler
         end
 
-        def register(message_type, *handlers)
-          @handlers[message_type.to_sym].concat(handlers)
+        def register(message_type_name, *handlers)
+          @handlers[message_type_name.to_sym].concat(handlers)
           self
         end
 
@@ -37,16 +37,16 @@ module Realm
         def send(message)
           result = @result_factory.new_unresolved_result(message)
 
-          message_type = message.message_type
-          explicit_handlers = explicit_handlers_for_message_type(message_type)
+          message_type_name = message.message_type_name
+          explicit_handlers = explicit_handlers_for_message_type(message_type_name)
 
           if explicit_handlers.length == 0
             @unhandled_send_handler.handle_unhandled_message(message)
           elsif explicit_handlers.length == 1
-            explicit_handlers.first.send(:"handle_#{message.message_type}", message, response_port: result)
+            explicit_handlers.first.send(:"handle_#{message.message_type_name}", message, response_port: result)
           else
             raise TooManyMessageHandlersError.new(
-              %'Found #{explicit_handlers.length} message handlers for "#{message_type}": #{explicit_handlers.inspect}'
+              %'Found #{explicit_handlers.length} message handlers for "#{message_type_name}": #{explicit_handlers.inspect}'
             )
           end
 
@@ -57,10 +57,10 @@ module Realm
 
         # Broadcast
         def publish(message)
-          message_type = message.message_type
+          message_type_name = message.message_type_name
 
-          if have_handlers_for?(message_type)
-            publish_message_to_handlers(message, handlers_for_message_type(message_type))
+          if have_handlers_for?(message_type_name)
+            publish_message_to_handlers(message, handlers_for_message_type(message_type_name))
           else
             publish_message_to_unhandled_message_handlers(message)
           end
@@ -77,7 +77,7 @@ module Realm
         end
 
         def publish_message_to_handler(message, handler)
-          handler.send(:"handle_#{message.message_type}", message)
+          handler.send(:"handle_#{message.message_type_name}", message)
         end
 
         def publish_message_to_unhandled_message_handlers(message)
@@ -86,16 +86,16 @@ module Realm
           end
         end
 
-        def have_handlers_for?(message_type)
-          handlers_for_message_type(message_type).length > 0
+        def have_handlers_for?(message_type_name)
+          handlers_for_message_type(message_type_name).length > 0
         end
 
-        def handlers_for_message_type(message_type)
-          explicit_handlers_for_message_type(message_type) + handlers_for_all_messages
+        def handlers_for_message_type(message_type_name)
+          explicit_handlers_for_message_type(message_type_name) + handlers_for_all_messages
         end
 
-        def explicit_handlers_for_message_type(message_type)
-          @handlers[message_type]
+        def explicit_handlers_for_message_type(message_type_name)
+          @handlers[message_type_name]
         end
 
         def handlers_for_all_messages

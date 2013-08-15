@@ -1,10 +1,12 @@
 module Realm
   module Messaging
     class MessageType
+      attr_reader :name
+
       GENERIC_PROPERTIES = {
-        message_type: Symbol,
-        version:      Integer,
-        timestamp:    Time
+        message_type_name:  Symbol,
+        version:            Integer,
+        timestamp:          Time
       }.freeze
 
       # Properties are specified as `name => type` but currently we ignore the type
@@ -13,10 +15,6 @@ module Realm
         @name       = name
         @properties = GENERIC_PROPERTIES.merge(properties)
         @responses  = responses
-      end
-
-      def message_name
-        @name
       end
 
       def new_message(attributes)
@@ -33,14 +31,14 @@ module Realm
         target.accept_as_response?(@name)
       end
 
-      def accept_as_response?(message_name)
-        @responses.include?(message_name)
+      def accept_as_response?(message_type_name)
+        @responses.include?(message_type_name)
       end
 
       private
 
       def augment_attributes(attributes)
-        { timestamp: Time.now }.merge(attributes).merge(message_type: @name, version: 1)
+        { timestamp: Time.now }.merge(attributes).merge(message_type_name: @name, version: 1)
       end
 
       def property_names

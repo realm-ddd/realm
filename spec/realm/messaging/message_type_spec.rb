@@ -12,14 +12,7 @@ module Realm
         )
       }
 
-      # This is currently a bit inconsistent - I think we should use message_name
-      # everywhere the symbol name is being referred to, but this is the first
-      # time I've embedded that in the implementation. Earlier references to
-      # "message_type" will need to be updatet.
-      #
-      # Also: I wanted to avoid exposing any state on the MessageType objects, but
-      # I couldn't see another sane way to test the MessageFactory response lookups
-      its(:message_name) { should be == :test_message_type }
+      its(:name) { should be == :test_message_type }
 
       it "can be built with no properties" do
         # RSpec 2.14 deprecation:

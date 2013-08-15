@@ -4,8 +4,8 @@ module Realm
     # the pre-determined response message
     class FakeMessageResponse
       class MessageResponse
-        def initialize(message_name, args)
-          @response_message = message_name
+        def initialize(message_type_name, args)
+          @response_message = message_type_name
           @response_args    = args
         end
 
@@ -37,7 +37,7 @@ module Realm
       def initialize(resolve_with: nil, raise_error: nil)
         @response =
           if resolve_with
-            MessageResponse.new(resolve_with.fetch(:message_name), resolve_with.fetch(:args))
+            MessageResponse.new(resolve_with.fetch(:message_type_name), resolve_with.fetch(:args))
           elsif raise_error
             ErrorResponse.new(raise_error)
           else

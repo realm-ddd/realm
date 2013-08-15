@@ -37,14 +37,14 @@ module Realm
           @uncommitted_events = [ ]
         end
 
-        def fire(message_type, attributes = { })
-          event = event_factory.build(message_type, attributes.reverse_merge(uuid: uuid))
+        def fire(message_type_name, attributes = { })
+          event = event_factory.build(message_type_name, attributes.reverse_merge(uuid: uuid))
           apply(event)
           uncommitted_events << event
         end
 
         def apply(event)
-          send(:"apply_#{event.message_type}", event)
+          send(:"apply_#{event.message_type_name}", event)
         end
 
         private

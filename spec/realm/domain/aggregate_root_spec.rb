@@ -89,7 +89,7 @@ module Realm
 
         it "has an uncommitted creation event" do
           expect(aggregate_root).to have_uncommitted_events(
-            { message_type: :test_aggregate_created, uuid: :aggregate_uuid, foo: "bar" }
+            { message_type_name: :test_aggregate_created, uuid: :aggregate_uuid, foo: "bar" }
           )
         end
       end
@@ -124,7 +124,7 @@ module Realm
           aggregate_root.update_foo_without_providing_uuid
 
           expect(aggregate_root).to have_uncommitted_events(
-            { message_type: :foo_updated, uuid: :aggregate_uuid, foo: "unimportant" }
+            { message_type_name: :foo_updated, uuid: :aggregate_uuid, foo: "unimportant" }
           )
         end
 
@@ -132,7 +132,7 @@ module Realm
           aggregate_root.fire_event_with_no_attributes
 
           expect(aggregate_root).to have_uncommitted_events(
-            { message_type: :simple_event, uuid: :aggregate_uuid }
+            { message_type_name: :simple_event, uuid: :aggregate_uuid }
           )
         end
       end

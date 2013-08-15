@@ -13,7 +13,7 @@ module Realm
         context "handler provided" do
           context "array of arguments" do
             let(:response_message) {
-              { message_name: :foo, args: [ "one", "two", "three" ] }
+              { message_type_name: :foo, args: [ "one", "two", "three" ] }
             }
 
             let(:value) {
@@ -30,7 +30,7 @@ module Realm
 
           context "single argument (special case)" do
             let(:response_message) {
-              { message_name: :foo, args: "only argument" }
+              { message_type_name: :foo, args: "only argument" }
             }
 
             let(:value) {
@@ -47,7 +47,7 @@ module Realm
 
           context "single argument in response handler but array in canned response message" do
             let(:response_message) {
-              { message_name: :foo, args: [ "one", "two", "three" ] }
+              { message_type_name: :foo, args: [ "one", "two", "three" ] }
             }
 
             let(:value) {
@@ -65,7 +65,7 @@ module Realm
 
         context "handler not provided" do
           let(:response_message) {
-            { message_name: :foo, args: :_unused_ }
+            { message_type_name: :foo, args: :_unused_ }
           }
 
           let(:value) {

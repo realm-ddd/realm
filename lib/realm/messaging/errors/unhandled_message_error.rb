@@ -12,7 +12,7 @@ module Realm
           @symbol.inspect
         end
 
-        def message_type
+        def message_type_name
           @symbol
         end
       end
@@ -25,8 +25,8 @@ module Realm
         "Unhandled message: " + @domain_message.to_s
       end
 
-      def message_type
-        @domain_message.message_type
+      def message_type_name
+        @domain_message.message_type_name
       end
 
       private
