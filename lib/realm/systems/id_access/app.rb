@@ -7,11 +7,13 @@ module Realm
       class App
         def initialize(
             message_bus:    required(:message_bus),
+            message_logger: nil,
             event_store:    required(:event_store),
             query_database: required(:query_database),
             cryptographer:  required(:cryptographer),
             config:         { })
           @message_bus    = message_bus
+          @message_logger = message_logger
           @event_store    = event_store
           @query_database = query_database
           @cryptographer  = cryptographer
@@ -23,6 +25,7 @@ module Realm
           connect_query_models
           connect_command_handlers
           connect_application_services
+          connect_message_logger
 
           # Allow people to capture the app by calling app = App.new.boot
           self
@@ -54,6 +57,12 @@ module Realm
 
         def connect_application_services
           application_services[:user_service] = user_service
+        end
+
+        def connect_message_logger
+          if @message_logger
+            @message_bus.register(:all_messages, @message_logger)
+          end
         end
 
         # Hijacked from Harvest, maybe we could put this on the message bus?
