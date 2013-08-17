@@ -24,15 +24,13 @@ module Realm
         # It might be better to do this with MessageTypes directly,
         # eg as in the specs for the RSpec matchers
         let(:message_factory) {
-          Realm::Messaging::MessageFactory.new
+          Realm::Messaging::MessageFactory.new do |messages|
+            messages.define(:message_type_1, properties: { message_data: String })
+            messages.define(:message_type_2, properties: { message_data: String })
+            messages.define(:foo)
+            messages.define(:bar)
+          end
         }
-
-        before(:each) do
-          message_factory.define(:message_type_1, properties: { message_data: String })
-          message_factory.define(:message_type_2, properties: { message_data: String })
-          message_factory.define(:foo)
-          message_factory.define(:bar)
-        end
 
         let(:message_handler_a) {
           double("Message Handler A", handle_message_type_1: nil)
