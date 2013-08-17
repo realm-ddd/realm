@@ -59,11 +59,11 @@ module Realm
         # Hijacked from Harvest, maybe we could put this on the message bus?
         # (In normal production use, we want each read model listening to all
         # the events it understands.)
-        def connect_query_model(name, options)
+        def connect_query_model(name, query_model_class: r(:query_model_class), events: r(:events))
           query_models[name] =
-            options[:query_model_class].new(@query_database[name])
+            query_model_class.new(@query_database[name])
 
-          options[:events].each do |event_name|
+          events.each do |event_name|
             @message_bus.register(event_name, query_models[name])
           end
         end

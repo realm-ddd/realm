@@ -42,6 +42,14 @@ module Realm
       its(:timestamp)   { should be == :test_timestamp }
       its(:uuid)        { should be == :test_uuid }
 
+      describe "#system_name" do
+        example do
+          expect(
+            Message.new(test_message_attributes, system_name: :other_system).system_name
+          ).to be == :other_system
+        end
+      end
+
       describe "#output_to" do
         let(:formatter) { double("MessageFormatter", format: "formatted_message") }
 

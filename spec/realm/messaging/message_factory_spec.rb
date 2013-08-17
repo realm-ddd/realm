@@ -5,9 +5,13 @@ require 'realm/messaging'
 module Realm
   module Messaging
     describe MessageFactory do
-      let(:message_type) { double(MessageType) }
+      let(:message) { double(Message) }
+      let(:message_type) { double(MessageType, new_message: message) }
       let(:message_type_factory) { double("MessageTypeFactory", new: message_type) } # Unnamed type
-      subject(:message_factory) { MessageFactory.new(message_type_factory) }
+
+      subject(:message_factory) {
+        MessageFactory.new(message_type_factory, system_name: :some_system)
+      }
 
       describe ".new" do
         let(:block_factory) {
@@ -26,10 +30,11 @@ module Realm
       describe "#define" do
         context "properties" do
           it "builds the MessageType" do
-            message_type_factory.should_receive(:new).with(
-              :message_type_name, properties: { property_1: String, property_2: String }
-            )
             message_factory.define(:message_type_name, properties: { property_1: String, property_2: String })
+
+            expect(message_type_factory).to have_received(:new).with(
+              :message_type_name, system_name: :some_system, properties: { property_1: String, property_2: String }
+            )
           end
         end
 
@@ -52,7 +57,9 @@ module Realm
             )
 
             expect(message_type_factory).to have_received(:new).with(
-              :message_type_name, responses: [ :response_message_name_1, :response_message_name_2 ]
+              :message_type_name,
+              responses: [ :response_message_name_1, :response_message_name_2 ],
+              system_name: :some_system
             )
           end
         end
@@ -64,13 +71,22 @@ module Realm
             message_factory.define(:message_type_name, properties: { property_1: String, property_2: String })
           end
 
-          it "tells the MessageType to build an message" do
-            message_type.should_receive(:new_message).with(
-              property_1: "attribute 1", property_2: "attribute 2"
-            )
+          it "tells the MessageType to build a message" do
             message_factory.build(
               :message_type_name, property_1: "attribute 1", property_2: "attribute 2"
             )
+
+            expect(message_type).to have_received(:new_message).with(
+              property_1: "attribute 1", property_2: "attribute 2"
+            )
+          end
+
+          it "returns the message" do
+            expect(
+              message_factory.build(
+                :message_type_name, property_1: "attribute 1", property_2: "attribute 2"
+              )
+            ).to be == message
           end
         end
 

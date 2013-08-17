@@ -12,7 +12,7 @@ module Realm
 
           it "raises an error" do
             expect {
-              bus_without_result_factory.send(:_unimportant_)
+              bus_without_result_factory.send(double(Message, system_name: nil))
             }.to raise_error(NoResultFactoryAvailableError,
               "A MessageBus must be constructed with a ResultFactory to send messages that require a response"
             )
@@ -65,6 +65,43 @@ module Realm
             expect(
               message_bus.register(:message_type_1, message_handler_a)
             ).to equal(message_bus)
+          end
+        end
+
+        describe "#route_messages_for_subsystem" do
+          let(:subsystem_message) {
+            double(Message, system_name: :other_system, message_type_name: :message_type_1)
+          }
+
+          let(:downstream_message_bus) { double(MessageBus, publish: nil, send: nil) }
+
+          before(:each) do
+            message_bus.register(:message_type_1, message_handler_a)
+            message_bus.route_messages_for_subsystem(:other_system, to_message_bus: downstream_message_bus)
+          end
+
+          describe "with #publish" do
+            it "causes messages for a subsystem to be sent to the nominated bus" do
+              message_bus.publish(subsystem_message)
+              expect(downstream_message_bus).to have_received(:publish).with(subsystem_message)
+            end
+
+            it "doesn't publish to handlers on this bus" do
+              message_bus.publish(subsystem_message)
+              expect(message_handler_a).to_not have_received(:handle_message_type_1)
+            end
+          end
+
+          describe "with #send" do
+            it "causes messages for a subsystem to be sent to the nominated bus" do
+              message_bus.send(subsystem_message)
+              expect(downstream_message_bus).to have_received(:send).with(subsystem_message)
+            end
+
+            it "doesn't send to handlers on this bus" do
+              message_bus.send(subsystem_message)
+              expect(message_handler_a).to_not have_received(:handle_message_type_1)
+            end
           end
         end
 
@@ -124,7 +161,7 @@ module Realm
         end
 
         describe "#send" do
-          let(:fake_message) { double("Message", message_type_name: :fake_message) }
+          let(:fake_message) { double("Message", system_name: nil, message_type_name: :fake_message) }
 
           it "constructs a result" do
             message_bus.send(fake_message)

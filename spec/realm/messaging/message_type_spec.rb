@@ -7,8 +7,9 @@ module Realm
     describe MessageType do
       subject(:message_type) {
         MessageType.new(:test_message_type,
-          properties: { property_1: String, property_2: String },
-          responses: [ :response_message_name_1, :response_message_name_2 ]
+          system_name:  :some_system,
+          properties:   { property_1: String, property_2: String },
+          responses:    [ :response_message_name_1, :response_message_name_2 ]
         )
       }
 
@@ -41,6 +42,10 @@ module Realm
           let(:message) {
             message_type.new_message(property_1: "attribute 1", property_2: "attribute 2")
           }
+
+          it "has a system name" do
+            expect(message.system_name).to be == :some_system
+          end
 
           it "has a timestamp" do
             expect(message.timestamp).to be_within(1).of(Time.now)

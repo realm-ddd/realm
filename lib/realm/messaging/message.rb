@@ -4,14 +4,17 @@ require 'facets/hash/op_sub'
 module Realm
   module Messaging
     class Message
+      attr_reader :system_name
+
       GENERIC_PROPERTIES = %i[
         message_type_name
         version
         timestamp
       ].freeze
 
-      def initialize(attributes)
+      def initialize(attributes, system_name: nil)
         @attributes = sanitize_attributes(attributes)
+        @system_name = system_name
       end
 
       def to_s

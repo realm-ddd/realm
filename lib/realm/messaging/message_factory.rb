@@ -1,14 +1,18 @@
 module Realm
   module Messaging
     class MessageFactory
-      def initialize(message_type_factory = MessageType, &builder_block)
+      def initialize(message_type_factory = MessageType, system_name: nil, &builder_block)
         @message_type_factory = message_type_factory
-        @message_types = Hash.new
+        @message_types        = Hash.new
+        @system_name          = system_name
+
         builder_block[self] if block_given?
       end
 
       def define(message_type_name, definition = { })
-        @message_types[message_type_name] = @message_type_factory.new(message_type_name, definition)
+        # We have to use merge to pass the system_name keyword arg below due to the way Ruby behaves
+        @message_types[message_type_name] =
+          @message_type_factory.new(message_type_name, definition.merge(system_name: @system_name))
       end
 
       def build(message_type_name, attributes = { })

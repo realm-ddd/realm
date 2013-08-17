@@ -3,6 +3,8 @@ module Realm
     class MessageType
       attr_reader :name
 
+      # Note: we pass system_name through too, but we don't treat it as a property yet,
+      # not until I've decided it is a property in the same way message_type_name etc are
       GENERIC_PROPERTIES = {
         message_type_name:  Symbol,
         version:            Integer,
@@ -11,10 +13,11 @@ module Realm
 
       # Properties are specified as `name => type` but currently we ignore the type
       # Responses can be specified but currently don't do anything (to be added soon)
-      def initialize(name, properties: { }, responses: [ ])
-        @name       = name
-        @properties = GENERIC_PROPERTIES.merge(properties)
-        @responses  = responses
+      def initialize(name, properties: { }, responses: [ ], system_name: nil)
+        @name         = name
+        @properties   = GENERIC_PROPERTIES.merge(properties)
+        @responses    = responses
+        @system_name  = system_name
       end
 
       def new_message(attributes)
@@ -24,7 +27,7 @@ module Realm
           raise MessagePropertyError.new(@name, property_names, augmented_attributes.keys)
         end
 
-        Message.new(augmented_attributes)
+        Message.new(augmented_attributes, system_name: @system_name)
       end
 
       def response_to?(target)

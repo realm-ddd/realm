@@ -23,6 +23,8 @@ module Realm
 
           @handlers = Hash.new { |hash, key| hash[key] = [ ] }
           @unhandled_send_handler = unhandled_send_handler
+
+          @subsystem_routes = Hash.new
         end
 
         def register(message_type_name, *handlers)
@@ -30,11 +32,52 @@ module Realm
           self
         end
 
+        def route_messages_for_subsystem(subsystem_name, to_message_bus: required(:to_message_bus))
+          @subsystem_routes[subsystem_name] = to_message_bus
+        end
+
         # Send to a single registered handler
         # It would probably be much better if we just prevented registering multiple handlers
         # for messages of certain types (or add message categories, and make this apply to all
         # command category messages)
         def send(message)
+          if @subsystem_routes.has_key?(message.system_name)
+            route_message(message, delivery_type: :send)
+          else
+            send_message(message)
+          end
+        end
+
+        # Broadcast to all registered handlers
+        # This will route messages to configured subsystems, although having
+        # impemented that I'm now questioning its validity
+        def publish(message)
+          if @subsystem_routes.has_key?(message.system_name)
+            route_message(message, delivery_type: :publish)
+          else
+            publish_message(message)
+          end
+        end
+
+        private
+
+        def route_message(message, delivery_type: required(:delivery_type))
+          @subsystem_routes[message.system_name].__send__(delivery_type, message)
+        end
+
+        def publish_message(message)
+          message_type_name = message.message_type_name
+
+          if have_handlers_for?(message_type_name)
+            publish_message_to_handlers(message, handlers_for_message_type(message_type_name))
+          else
+            publish_message_to_unhandled_message_handlers(message)
+          end
+
+          nil
+        end
+
+        def send_message(message)
           result = @result_factory.new_unresolved_result(message)
 
           message_type_name = message.message_type_name
@@ -54,21 +97,6 @@ module Realm
 
           result
         end
-
-        # Broadcast
-        def publish(message)
-          message_type_name = message.message_type_name
-
-          if have_handlers_for?(message_type_name)
-            publish_message_to_handlers(message, handlers_for_message_type(message_type_name))
-          else
-            publish_message_to_unhandled_message_handlers(message)
-          end
-
-          nil
-        end
-
-        private
 
         def publish_message_to_handlers(message, handlers)
           handlers.each do |handler|
