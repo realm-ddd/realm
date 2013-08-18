@@ -1,3 +1,5 @@
+require 'celluloid'
+
 module Realm
   module Messaging
     module Bus
@@ -11,6 +13,7 @@ module Realm
 
       class SimpleMessageBus
         include MessageBus
+        include Celluloid
 
         class TooManyMessageHandlersError < MessagingError; end
 
@@ -29,7 +32,7 @@ module Realm
 
         def register(message_type_name, *handlers)
           @handlers[message_type_name.to_sym].concat(handlers)
-          self
+          Actor.current
         end
 
         def route_messages_for_subsystem(subsystem_name, to_message_bus: required(:to_message_bus))
@@ -57,6 +60,8 @@ module Realm
           else
             publish_message(message)
           end
+
+          nil
         end
 
         private
@@ -78,7 +83,12 @@ module Realm
         end
 
         def send_message(message)
-          result = @result_factory.new_unresolved_result(message)
+          result =
+            begin
+              @result_factory.new_unresolved_result(message)
+            rescue NoResultFactoryAvailableError => e
+              abort e
+            end
 
           message_type_name = message.message_type_name
           explicit_handlers = explicit_handlers_for_message_type(message_type_name)
@@ -86,9 +96,9 @@ module Realm
           if explicit_handlers.length == 0
             @unhandled_send_handler.handle_unhandled_message(message)
           elsif explicit_handlers.length == 1
-            explicit_handlers.first.send(:"handle_#{message.message_type_name}", message, response_port: result)
+            receiver_for_handler(explicit_handlers.first).send(:"handle_#{message.message_type_name}", message, response_port: result)
           else
-            raise TooManyMessageHandlersError.new(
+            abort TooManyMessageHandlersError.new(
               %'Found #{explicit_handlers.length} message handlers for "#{message_type_name}": #{explicit_handlers.inspect}'
             )
           end
@@ -105,7 +115,7 @@ module Realm
         end
 
         def publish_message_to_handler(message, handler)
-          handler.send(:"handle_#{message.message_type_name}", message)
+          receiver_for_handler(handler).send(:"handle_#{message.message_type_name}", message)
         end
 
         def publish_message_to_unhandled_message_handlers(message)
@@ -128,6 +138,14 @@ module Realm
 
         def handlers_for_all_messages
           @handlers[:all_messages]
+        end
+
+        def receiver_for_handler(handler)
+          if handler.respond_to?(:async)
+            handler.async
+          else
+            handler
+          end
         end
       end
     end
