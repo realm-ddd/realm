@@ -32,6 +32,9 @@ module Realm
           end
         }
 
+        # We could probably do with going through these examples and cleaning up the
+        # message names used, partly because they're now littered with extra stub
+        # calls for ad-hoc spy expectations
         let(:message_handler_a) {
           double("Message Handler A", handle_message_type_1: nil)
         }
@@ -110,21 +113,21 @@ module Realm
             message_bus.register(:message_type_1, message_handler_a, message_handler_b)
             message_bus.register(:message_type_2, message_handler_b, message_handler_c)
 
-            message_handler_a.should_receive(:handle_message_type_1).with(
-              message_matching(message_type_name: :message_type_1, message_data: "foo")
-            )
-            message_handler_b.should_receive(:handle_message_type_1).with(
-              message_matching(message_type_name: :message_type_1, message_data: "foo")
-            )
-            message_handler_b.should_receive(:handle_message_type_2).with(
-              message_matching(message_type_name: :message_type_2, message_data: "bar")
-            )
-            message_handler_c.should_receive(:handle_message_type_2).with(
-              message_matching(message_type_name: :message_type_2, message_data: "bar")
-            )
-
             message_bus.publish(message_factory.build(:message_type_1, message_data: "foo"))
             message_bus.publish(message_factory.build(:message_type_2, message_data: "bar"))
+
+            expect(message_handler_a).to have_received(:handle_message_type_1).with(
+              message_matching(message_type_name: :message_type_1, message_data: "foo")
+            )
+            expect(message_handler_b).to have_received(:handle_message_type_1).with(
+              message_matching(message_type_name: :message_type_1, message_data: "foo")
+            )
+            expect(message_handler_b).to have_received(:handle_message_type_2).with(
+              message_matching(message_type_name: :message_type_2, message_data: "bar")
+            )
+            expect(message_handler_c).to have_received(:handle_message_type_2).with(
+              message_matching(message_type_name: :message_type_2, message_data: "bar")
+            )
           end
 
           it "returns nil" do
@@ -134,29 +137,35 @@ module Realm
           end
 
           it "sends all messages to handlers for :all_messages" do
-            message_bus.register(:all_messages, message_handler_a)
+            message_handler_a.stub(handle_foo: nil, handle_bar: nil)
+            message_handler_b.stub(handle_foo: nil, handle_bar: nil)
 
-            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type_name: :foo))
-            message_handler_a.should_receive(:handle_bar).with(message_matching(message_type_name: :bar))
-            message_handler_b.should_not_receive(:handle_foo)
-            message_handler_b.should_not_receive(:handle_bar)
+            message_bus.register(:all_messages, message_handler_a)
 
             message_bus.publish(message_factory.build(:foo))
             message_bus.publish(message_factory.build(:bar))
+
+            expect(message_handler_a).to have_received(:handle_foo).with(message_matching(message_type_name: :foo))
+            expect(message_handler_a).to have_received(:handle_bar).with(message_matching(message_type_name: :bar))
+            expect(message_handler_b).to_not have_received(:handle_foo)
+            expect(message_handler_b).to_not have_received(:handle_bar)
           end
 
           it "sends unhandled messages to handlers for :unhandled_messages" do
+            message_handler_a.stub(handle_foo: nil, handle_bar: nil)
+            message_handler_b.stub(handle_unhandled_message: nil)
+
             message_bus.register(:foo, message_handler_a)
             message_bus.register(:unhandled_message, message_handler_b)
 
-            message_handler_a.should_receive(:handle_foo).with(message_matching(message_type_name: :foo))
-            message_handler_a.should_not_receive(:handle_bar)
-
-            message_handler_b.should_not_receive(:handle_unhandled_message).with(message_matching(message_type_name: :foo))
-            message_handler_b.should_receive(:handle_unhandled_message).with(message_matching(message_type_name: :bar))
-
             message_bus.publish(message_factory.build(:foo))
             message_bus.publish(message_factory.build(:bar))
+
+            expect(message_handler_a).to have_received(:handle_foo).with(message_matching(message_type_name: :foo))
+            expect(message_handler_a).to_not have_received(:handle_bar)
+
+            expect(message_handler_b).to_not have_received(:handle_unhandled_message).with(message_matching(message_type_name: :foo))
+            expect(message_handler_b).to have_received(:handle_unhandled_message).with(message_matching(message_type_name: :bar))
           end
 
           context "with an actor handler" do
@@ -195,13 +204,13 @@ module Realm
           it "sends messages to the one registered handler" do
             message_bus.register(:message_type_1, message_handler_a)
 
-            message_handler_a.should_receive(:handle_message_type_1).with(
-              message_matching(message_type_name: :message_type_1, message_data: "foo"),
-              response_port: result
-            )
-
             message_bus.send(
               message_factory.build(:message_type_1, message_data: "foo")
+            )
+
+            expect(message_handler_a).to have_received(:handle_message_type_1).with(
+              message_matching(message_type_name: :message_type_1, message_data: "foo"),
+              response_port: result
             )
           end
 
@@ -209,19 +218,22 @@ module Realm
           # only one of them. This makes the code here a bit hacky, but fortunately at least
           # simplifies the MessageLogger which therefore doesn't neet to worry about it.
           it "sends all messages to handlers for :all_messages, not the response port" do
-            message_bus.register(:all_messages, message_handler_a)
+            message_handler_a.stub(handle_foo: nil, handle_bar: nil)
+            message_handler_b.stub(handle_foo: nil, handle_bar: nil)
 
-            message_handler_a.should_receive(:handle_foo).with(
-              message_matching(message_type_name: :foo)
-            )
-            message_handler_a.should_receive(:handle_bar).with(
-              message_matching(message_type_name: :bar)
-            )
-            message_handler_b.should_not_receive(:handle_foo)
-            message_handler_b.should_not_receive(:handle_bar)
+            message_bus.register(:all_messages, message_handler_a)
 
             message_bus.send(message_factory.build(:foo))
             message_bus.send(message_factory.build(:bar))
+
+            expect(message_handler_a).to have_received(:handle_foo).with(
+              message_matching(message_type_name: :foo)
+            )
+            expect(message_handler_a).to have_received(:handle_bar).with(
+              message_matching(message_type_name: :bar)
+            )
+            expect(message_handler_b).to_not have_received(:handle_foo)
+            expect(message_handler_b).to_not have_received(:handle_bar)
           end
 
           it "raises an error if it finds more than one handler" do
@@ -249,12 +261,13 @@ module Realm
           end
 
           it "sends unhandled messages to the specified handler" do
+            message_handler_a.stub(handle_unhandled_message: nil)
             message_bus.register(:foo, message_handler_a)
 
-            message_handler_a.should_not_receive(:handle_unhandled_message)
-            unhandled_send_handler.should_receive(:handle_unhandled_message).with(message_matching(message_type_name: :bar))
-
             message_bus.send(message_factory.build(:bar))
+
+            expect(message_handler_a).to_not have_received(:handle_unhandled_message)
+            expect(unhandled_send_handler).to have_received(:handle_unhandled_message).with(message_matching(message_type_name: :bar))
           end
 
           context "with an actor handler" do

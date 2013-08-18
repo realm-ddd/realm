@@ -44,8 +44,8 @@ module Realm
         }
 
         it "aliases the method" do
-          event_store.should_receive(:save_events).with(:aggregate_uuid, [ :event_1, :event_2 ])
           repository.become_aware_of(aggregate_root)
+          expect(event_store).to have_received(:save_events).with(:aggregate_uuid, [ :event_1, :event_2 ])
         end
 
         it "makes the old method private" do
@@ -59,27 +59,27 @@ module Realm
 
       describe "#save" do
         it "saves the events" do
-          event_store.should_receive(:save_events).with(:aggregate_uuid, [ :event_1, :event_2 ])
           repository.save(aggregate_root)
+          expect(event_store).to have_received(:save_events).with(:aggregate_uuid, [ :event_1, :event_2 ])
         end
       end
 
       describe "#update" do
         it "saves the events" do
-          event_store.should_receive(:save_events).with(:aggregate_uuid, [ :event_1, :event_2 ])
           repository.update(aggregate_root)
+          expect(event_store).to have_received(:save_events).with(:aggregate_uuid, [ :event_1, :event_2 ])
         end
       end
 
       describe "#get_by_id" do
         it "loads the history" do
-          event_store.should_receive(:history_for_aggregate).with(:aggregate_uuid)
           repository.get_by_id(:aggregate_uuid)
+          expect(event_store).to have_received(:history_for_aggregate).with(:aggregate_uuid)
         end
 
         it "creates an AggregateRoot from the history" do
-          aggregate_root_class.should_receive(:load_from_history).with([ :old_event_1, :old_event_2 ])
           repository.get_by_id(:aggregate_uuid)
+          expect(aggregate_root_class).to have_received(:load_from_history).with([ :old_event_1, :old_event_2 ])
         end
 
         it "returns the AggregateRoot" do

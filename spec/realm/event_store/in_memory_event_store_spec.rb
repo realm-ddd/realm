@@ -21,10 +21,10 @@ module Realm
         end
 
         it "publishes events" do
-          event_bus.should_receive(:publish).with(:event_1)
-          event_bus.should_receive(:publish).with(:event_2)
-
           event_store.save_events(:uuid, [ :event_1, :event_2 ])
+
+          expect(event_bus).to have_received(:publish).with(:event_1)
+          expect(event_bus).to have_received(:publish).with(:event_2)
         end
       end
 
