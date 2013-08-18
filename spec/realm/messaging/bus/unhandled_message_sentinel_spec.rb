@@ -10,14 +10,11 @@ module Realm
           MessageType.new(:foo, properties: { message: String })
         }
         let(:message)       { message_type.new_message(message: "bar") }
-        let(:message_bus)   { SimpleMessageBus.new }
         subject(:handler)   { UnhandledMessageSentinel.new }
 
         it "raises an error on unhandled messages" do
-          message_bus.register(:unhandled_message, handler)
-
           expect {
-            message_bus.publish(message)
+            handler.handle_unhandled_message(message)
           }.to raise_error(UnhandledMessageError) { |error|
             expect(error.message).to include('"foo"')
             expect(error.message).to include("message:")

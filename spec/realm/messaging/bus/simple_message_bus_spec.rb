@@ -298,25 +298,6 @@ module Realm
               expect(result).to have_received(:message_handled).with("I got some data")
             end
           end
-
-          context "with an actor handler" do
-            let(:async_proxy) { double("async proxy", handle_foo: nil) }
-            let(:actor_handler) { double("Actor Message Handler", async: async_proxy) }
-
-            before(:each) do
-              message_bus.register(:foo, actor_handler)
-            end
-
-            it "publishes asynchronously" do
-              pending "redo this from #publish to #send"
-              message_bus.publish(message_factory.build(:foo))
-              expect(async_proxy).to have_received(:handle_foo).with(message_matching(message_type_name: :foo))
-            end
-          end
-        end
-
-        it "has tests for `abort`" do
-          pending
         end
       end
     end
