@@ -40,18 +40,18 @@ module Realm
             end
 
             it "saves the view info" do
-              database.should_receive(:save).with(
-                uuid:           :user_uuid,
-                username:       "new_username",
-                email_address:  "example@email.com"
-              )
-
               event_bus.publish(
                 Domain::Events.build(:user_created,
                   uuid:           :user_uuid,
                   username:       "new_username",
                   email_address:  "example@email.com"
                 )
+              )
+
+              expect(database).to have_received(:save).with(
+                uuid:           :user_uuid,
+                username:       "new_username",
+                email_address:  "example@email.com"
               )
             end
           end

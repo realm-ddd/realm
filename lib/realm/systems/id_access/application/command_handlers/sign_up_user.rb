@@ -4,6 +4,8 @@ module Realm
       module Application
         module CommandHandlers
           class SignUpUser
+            include Celluloid
+
             def initialize(user_registry: required(:user_registry),
                            user_service:  required(:user_service),
                            cryptographer: required(:cryptographer),

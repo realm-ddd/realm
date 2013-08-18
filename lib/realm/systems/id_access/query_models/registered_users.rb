@@ -1,8 +1,12 @@
+require 'celluloid'
+
 module Realm
   module Systems
     module IdAccess
       module QueryModels
         class RegisteredUsers
+          include Celluloid
+
           def initialize(database)
             @database = database
           end

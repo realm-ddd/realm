@@ -2,6 +2,8 @@ module Realm
   module Messaging
     module Handlers
       class MessageLogger
+        include Celluloid
+
         def initialize(format_with: r(:format_with), log_to: r(:log_to))
           @formatter  = format_with
           @logger     = log_to
